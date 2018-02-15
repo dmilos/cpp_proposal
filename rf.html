@@ -1,0 +1,453 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <title>[C++]Refined friend(s).</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta name="Author"             content="Dejan D. M. R. Milosavljevic" />
+  <meta name="Reply-to"           content="office@ddmrm.com" />
+  <meta name="resource-type"      content="document" />
+  <meta name="URL"                content="http://www.ddmrm.com" />
+  <meta name="revisit-after"      content="45 days" />
+  <meta name="Keywords"           content="c++ proposal" />
+
+  <style type="text/css">
+<!--
+
+body {
+    margin-top: 20mm;
+    margin-right: 18mm;
+    margin-bottom: 20mm;
+    margin-left: 18mm;
+    border-width: 0;
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    margin: 0;
+    vertical-align: baseline;
+    font-size:16px;
+}
+
+table {
+     vertical-align: baseline;
+}
+.paragraf {
+    text-indent: 10pt;
+}
+
+.IndentedBlock3ex {
+    margin-left: 3ex;
+}
+
+.IndentedBlock2ex {
+    margin-left: 2ex;
+}
+
+.IndentedBlock1ex {
+    margin-left: 1ex;
+}
+.NovaStranica {
+    page-break-before: auto;
+    page-break-after: always;
+}
+
+.NaslovStranice
+{
+ font-size:30px;
+ font-weight:bold;
+}
+
+.NaslovGlavni
+{
+ font-size:28px;
+ font-weight:bold;
+}
+
+.NaslovPod
+ {
+  font-size: 22px;
+  font-weight:bold;
+ }
+
+.Naslovcic
+ {
+  font-size: 22px;
+  font-weight:bold;
+ }
+
+.TextObican
+ {
+    font-size: 15px;
+ }
+.TOCItem
+{
+ font-size:18px;
+ font-weight:bold;
+}
+
+
+.NaslovDefinicije
+{
+    font-size: 10;
+}
+
+.TextCode
+ {
+    font-size: 12px;
+ }
+
+-->
+  </style>
+ </head>
+
+ <body bgcolor="#FFFFFF" text="#000000" class="TextObican">
+  <h1 align="center" > <div class="NaslovStranice">Refined friend(s)</div> </h1>
+   <table border="0" width="100%">
+    <tr>
+     <td width="100%">&nbsp;</td>
+     <td nowrap="nowrap">
+      Document number: <br>
+      Date: <br>
+      Reply to:<br>
+      <br>
+     </td>
+     <td nowrap="nowrap">
+      NXXXX<br>
+      2015/03/22<br>
+      Dejan D.M. Milosavljevic<br>
+      (dmilos at gmail dot com)<br>
+     </td>
+     <td width="10%">&nbsp;</td>
+    </tr>
+   </table>
+   <dl>
+    <dt><div class="NaslovGlavni">Table of Contents.</div></dt>
+    <dd>
+     <ul>
+      <li><div class="TOCItem">I. Abstract</div></li>
+      <li><div class="TOCItem">II. Motivation</div></li>
+      <li><div class="TOCItem">III. Solution</div>
+       <ul>
+        <li><div class="TOCItem">Pattern Refinement and mixing of '&gt;&gt;' and '!&gt;&gt;'</div></li>
+       </ul>
+      </li>
+      <li><div class="TOCItem">IV. Syntax</div>
+       <ul>
+        <li><div class="TOCItem">Constraints</div></li>
+        <li><div class="TOCItem">Other Syntax That Fails</div></li>
+       </ul>
+      </li>
+      <li><div class="TOCItem">V. Summary</div></li>
+      <li><div class="TOCItem">VI. Impact On the Standard</div></li>
+     </ul>
+    </dd>
+
+   <dt><div class="NaslovGlavni">I. Abstract</div></dt>
+   <dd>
+    Making friends allows them to use private and protected members.<br>
+    This refinement restrict accessibility in two ways 'access only to' or 'access to all except to'.
+   </dd>
+   <dt><div class="NaslovGlavni">II. Motivation</div></dt>
+   <dd>
+    <code>protected</code> and <code>private</code> make limitation of access to class members.<br>
+    <code>friend</code> make exception to that by granting complete access.<br>
+    In some cases there is need to limit access or to have something like '<i>grant access only to</i>' or '<i>grant access to all except to</i>'.
+    <dl>
+     <dt>Problem:</dt>
+     <dd>[<i>Example</i>:
+<code><pre class="TextCode">
+ class A{
+   public:
+     void set_value( int const&amp; val );
+     int const&amp; get_value()const;
+
+   protected:
+     void val_internal_set( int const&amp; i );
+   private:
+     int int_value;
+   friend class B;
+  };
+
+ class B {
+   public:
+    void val_change( A &amp; a ){
+        a.val_internal_set( 2 );
+        <u>a.int_value = 4;     <b>//!&lt; We do not want that, but it can be accidentally on this place even with correct effects.</b></u>
+    }
+ };</pre></code>
+    &mdash;<i>end example</i>]<br><br>
+    </dd>
+    <dt>Slightly refined, but <code>B::val_change</code>, has complete access. <br>
+    Problem still exists. Compiler will not emit error.
+    In this case we actuality need limitation in opposite direction.
+    </dt>
+    <dd>
+    [<i>Example</i>:
+<code><pre class="TextCode">
+ class A{
+   // ... ... ...
+   friend class B::val_change;
+  };</pre></code>
+&mdash;<i>end example</i>]
+<br>
+    </dd>
+   </dl>
+    In here, refinement is not enough and not good. class B still can access to <code>A::val_internal_set</code>.<br>
+    We want to grant access only to <code>A::val_internal_set</code> and not to other members.<br>
+    This will allow us to appropriately implement <code>B::val_change</code> knowing that ( by design ) <code> class B</code> ( or <code>B::val_change</code>) can access to <code>A::val_internal_set</code> and not to other members.
+    <br><br>
+  <p class="NovaStranica"></p>
+  </dd>
+  <dt><div class="NaslovGlavni">III. Solution</div></dt>
+<dd>
+  <dl>
+   <dt>
+
+ Exact refinement by explicit expressing which members/functions <code>friend</code>s can access or not. </dt>
+ <dd>
+[<i>Example</i>:
+<blockquote>
+<code><pre class="TextCode">class A{
+  // ... ... ...
+
+  protected:
+   void val_internal_set( int const&amp; i );
+  private:
+   int int_value;
+
+  protected:
+   void float_internal_set( float const&amp; f );
+  private:
+   float float_value;
+
+  protected:
+   void string_internal_set( std::string const&amp; s );
+  private:
+   std::string string_value;
+
+   // B::val_change can use only to val_internal_set and float_internal_set.
+   friend void B::val_change()<b> &gt;&gt; void val_internal_set( int const&amp; i ) </b>
+                              <b> &gt;&gt; void float_internal_set( float const&amp; f )</b>;
+
+   // C::val_change() can use only to float_internal_set.
+   friend void C::val_change()<b> &gt;&gt; void float_internal_set( float const&amp; f )</b>;
+
+   // D::val_change() can not use string_value but can use other members.
+   friend void D::val_change()<b> !&gt;&gt; string_value</b>;
+ };
+
+ class B {
+   public:
+    void val_change( A &amp; a ){
+        a.val_internal_set( 4 );  //!&lt; OK
+        a.int_value = 2;          //!&lt; Error can not use
+     }
+  };
+
+ class C {
+   public:
+    void val_change( A &amp; a ){
+        a.float_internal_set( 4 );   //!&lt; OK
+        a.val_internal_set( 2 );     //!&lt; Error can not use
+    }
+  };
+
+ class D {
+   public:
+    void val_change( A &amp; a ){
+        a.val_internal_set( 4 );   //!&lt; OK
+        a.float_internal_set( 2 ); //!&lt; OK
+        a.string_value = "abc";      //!&lt; Error can not use
+    }
+  };</pre></code>
+</blockquote>
+&mdash;<i>end example</i>]
+   </dd>
+   <dt> <div class="NaslovPod">Pattern Refinement and mixing of '&gt;&gt;' and '!&gt;&gt;'</div></dt>
+   <dd>
+    <br>In brief: Bad idea! <br><br>
+
+    [<i>Example</i>:
+     <code><pre class="TextCode">
+ class A{
+   // Access to all protected functions and to string_value
+   friend class X &gt;&gt; protected !&gt;&gt; string_value;
+   // Access to all private functions and not to string_value
+   friend class X &gt;&gt; private !&gt;&gt; string_value;
+ };</pre></code>
+    &mdash;<i>end example</i>]
+   <br><br>
+   This kind of refinement tend to be code bloating. Can easily cause mistakes during code inspection/review like misunderstanding.<br>
+   During developing this refinement can be to wide to catch/control our intention/design.<br>
+   In this case I think that it is better to make this simple to to level  of '<i>grant access only to</i>' or '<i>grant access to all except to</i>'.<br>
+   Eve further mixing of '&gt;&gt;' and '!&gt;&gt;' in any way can make only confusion of what type of refinement we want e.g. make statement ambiguous.
+   </dd>
+  </dl>
+ <p class="NovaStranica"></p>
+ </dd>
+  <dt class ="NaslovGlavni">IV. Syntax</dt>
+   <dd>
+       <dl>
+        <dt><i>friend-declaration:</i></dt>
+         <dd><code>friend</code> <i>friend-specifier</i> ( '&gt;&gt;' <i>friend-member-declaration</i> )<sub>zero-or-more</sub> ';'</dd>
+         <dd><code>friend</code> <i>friend-specifier</i> ( '!' '&gt;&gt;' <i>friend-member-declaration</i> )<sub>zero-or-more</sub> ';'</dd>
+       <dt><i>friend-specifier:</i></dt>
+         <dd><i>elaborated-type-specifier</i></dd>
+         <dd><i>simple-type-specifier</i></dd>
+         <dd><i>typename-specifier</i></dd>
+       <dt><i>friend-member-declaration:</i></dt>
+        <dd><i>data-member-declaration</i> </dd>
+        <dd><i>function-member-declaration</i> </dd>
+        <dd><i>type-member-declaration</i> </dd>
+        <dd><i>enumerator-member-declaration</i> </dd>
+        <dt><i>data-member-declaration:</i></dt>
+        <dd><i>identifier</i> </dd>
+        <dt><i>function-member-declaration:</i></dt>
+        <dd><i>function-declarator</i> </dd>
+        <dt><i>type-member-declaration</i> </dt>
+        <dd><i>identifier</i></dd>
+        <dt><i>enumerator-member-declaration:</i></dt>
+        <dd><i>identifier</i> </dd>
+       </dl>
+
+     Note: '!&gt;&gt;' is not new token. It is two tokens '!' and '&gt;&gt;'.
+
+   <dl>
+    <dt><div class="NaslovPod">Constraints</div></dt>
+    <dd>
+      <dl>
+        <dt>Friend refinement for some class/function shall appears only once.</dt>
+        <dd>
+         [<i>Example</i>:
+       <pre class="TextCode" >class A {
+  public:
+   //   <i>ill-formed. Double friend refinement of B::val_change().</i>
+   friend void B::val_change()<b> &gt;&gt; void val_internal_set( int &amp; i ) </b>
+   friend void B::val_change()<b> &gt;&gt; void float_internal_set( int &amp; i ) </b>;
+
+   //   <i>OK. This is not refinement.</i>
+   friend class E;
+   friend class E;
+ };</pre>&mdash;<i>end example</i>]
+      </dd>
+      <dt> <div class="Naslovcic">Effects:</div></dt>
+      <dd>
+       <ul>
+        <li>Prevent abusing by making endless list.</li>
+        <li>Prevent of scattering one friend-specifier to several different places.</li>
+        <li>In case that list start to become large this will show obvious flaw in design.</li>
+       </ul>
+      </dd>
+     </dl>
+    </dd>
+    <dt><div class="NaslovPod">Other Syntax That Fails</div></dt>
+    <dd>
+     <dl>
+      <dt><div class="Naslovcic">'-&gt;'</div></dt>
+      <dd>
+        In here we obviously have problem with new function declaration syntax.
+         <blockquote>
+       [<i>Example</i>:
+       <pre class="TextCode" >class A {
+  // ... ... ...
+  friend void B::val_change() -&gt; val_internal_set( int const&amp; i ) -&gt; void
+                              -&gt; float_internal_set( float const&amp; f ) -&gt; void;
+  };</pre>&mdash;<i>end example</i>]</blockquote>
+      </dd>
+
+      <dt><div class="Naslovcic">' &gt;&gt;' vs ','</div></dt>
+      <dd>
+         Not so clearly visible/readable after we read first line.
+         <blockquote>
+       [<i>Example</i>:
+       <pre class="TextCode" >class A {
+  // ... ... ...
+  friend void B::val_change() &gt;&gt; void val_internal_set( int const&amp; i )
+                                , void float_internal_set( float const&amp; f );
+  };</pre>&mdash;<i>end example</i>]</blockquote>
+      </dd>
+
+      <dt><div class="Naslovcic">'&gt;&gt; { }'</div></dt>
+      <dd>
+      It can be misunderstand as function definition.
+       <blockquote>
+       [<i>Example</i>:
+       <pre class="TextCode" >class A {
+  // ... ... ...
+  friend void B::val_change() &gt;&gt; { void val_internal_set( int const&amp i )
+                              , void float_internal_set( float const&amp f ); }
+  };</pre>&mdash;<i>end example</i>]</blockquote>
+
+   Without &gt;&gt; this is more worse. It is look like function definition.
+       <blockquote>
+       [<i>Example</i>:
+       <pre class="TextCode" >class A {
+  // ... ... ...
+  friend void B::val_change() { void val_internal_set( int const&amp i )
+                              , void float_internal_set( float const&amp f ); }
+  };</pre>&mdash;<i>end example</i>]</blockquote>
+      </dd>
+
+      <dt><div class="Naslovcic">'[ ..., ... ]'</div></dt>
+      <dd>
+       Might be understand as array access.
+       <blockquote>
+       [<i>Example</i>:
+       <pre class="TextCode" >class A {
+  // ... ... ...
+  friend void B::val_change() &gt;&gt; [ void val_internal_set( int const&amp i )
+                              , void float_internal_set( float const&amp f ) ] ;
+  };</pre>&mdash;<i>end example</i>]</blockquote>
+
+        Without '&gt;&gt;' things look much worse.
+       <blockquote>
+       [<i>Example</i>:
+       <pre class="TextCode" >class A {
+  // ... ... ...
+  friend void B::val_change() [ void val_internal_set( int const&amp; i )
+                              , void float_internal_set( float const&amp; f ) ] ;
+  };</pre>&mdash;<i>end example</i>]</blockquote>
+      </dd>
+     </dl>
+    </dd>
+   </dl>
+   <p class="NovaStranica"></p>
+   </dd>
+   <dt><div class="NaslovGlavni">V. Summary</div></dt>
+   <dd>
+    <dl>
+     <dt>Access to all</dt>
+     <dd>By using friend specifier as usual.</dd>
+     <dt>No access at all</dt>
+     <dd>Jut do not use friend specifier.</dd>
+     <dt>Access to some members</dt>
+     <dd>By using '&gt;&gt;'</dd>
+     <dt>Not to access to some members</dt>
+     <dd>By using '!' '&gt;&gt;' </dd>
+    </dl>
+   </dd>
+
+   <dt><div class="NaslovGlavni">VI. Impact On the Standard</div></dt>
+   <dd>
+     <dl>
+       <dt> <div class="NaslovPod ">Core</div> </dt>
+       <dd>No effect.<br>
+           No new keywords. <br>
+           No new tokens. <br>
+           No changes to old syntax. <br>
+           Pure extension. <br>
+           Backward compatible. By design old declaration have same interpretation as described in ISO/IEC 14882 Second edition 2003-10-15.
+       </dd>
+       <dt><div class="NaslovPod ">Library</div></dt>
+       <dd>No effect.</dd>
+       <dt><div class="NaslovPod ">Existing code.</div></dt>
+       <dd>No effect.<br>
+     </dl>
+   </dd>
+  </dl>
+  <hr shade width="100%" align="center">
+ </body>
+</html>
+
+

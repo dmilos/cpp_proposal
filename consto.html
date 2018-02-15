@@ -1,0 +1,327 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <title>[C++]Dynamic constatization.</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta name="Author"             content="Dejan D. M. R. Milosavljevic" />
+  <meta name="Reply-to"           content="office@ddmrm.com" />
+  <meta name="resource-type"      content="document" />
+  <meta name="URL"                content="http://www.ddmrm.com" />
+  <meta name="revisit-after"      content="45 days" />
+  <meta name="Keywords"           content="c++ proposal" />
+
+  <style type="text/css">
+<!--
+
+body {
+    margin-top: 20mm;
+    margin-right: 18mm;
+    margin-bottom: 20mm;
+    margin-left: 18mm;
+    border-width: 0;
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    margin: 0;
+    vertical-align: baseline;
+    font-size:16px;
+}
+
+table {
+     vertical-align: baseline;
+}
+.paragraf {
+    text-indent: 10pt;
+}
+
+.IndentedBlock3ex {
+    margin-left: 3ex;
+}
+
+.IndentedBlock2ex {
+    margin-left: 2ex;
+}
+
+.IndentedBlock1ex {
+    margin-left: 1ex;
+}
+.NovaStranica {
+    page-break-before: auto;
+    page-break-after: always;
+}
+
+.NaslovStranice
+{
+ font-size:30px;
+ font-weight:bold;
+}
+
+.NaslovGlavni
+{
+ font-size:28px;
+ font-weight:bold;
+}
+
+.NaslovPod
+ {
+  font-size: 22px;
+  font-weight:bold;
+ }
+
+.Naslovcic
+ {
+  font-size: 18px;
+  font-weight:bold;
+ }
+
+.TextObican
+ {
+    font-size: 15px;
+ }
+.TOCItem
+{
+ font-size:18px;
+ font-weight:bold;
+}
+
+
+.NaslovDefinicije
+{
+    font-size: 10;
+}
+
+.TextCode
+ {
+    font-size: 12px;
+ }
+
+-->
+  </style>
+ </head>
+
+ <body bgcolor="#FFFFFF" text="#000000" class="TextObican">
+  <h1 align="center" > <div class="NaslovStranice">Dynamic constatization</div> </h1>
+   <table border="0" width="100%">
+    <tr>
+     <td width="100%">&nbsp;</td>
+     <td nowrap="nowrap">
+      Document number: <br>
+      Date: <br>
+      Reply to:<br>
+      <br>
+     </td>
+     <td nowrap="nowrap">
+      NXXXX<br>
+      2016/01/02<br>
+      Dejan D.M. Milosavljevic<br>
+      (dmilos at gmail dot com)<br>
+     </td>
+     <td width="10%">&nbsp;</td>
+    </tr>
+   </table>
+   <dl>
+    <dt><div class="NaslovGlavni">Table of Contents.</div></dt>
+    <dd>
+     <ul>
+      <li><div class="TOCItem">I. Abstract</div></li>
+      <li><div class="TOCItem">II. Motivation</div></li>
+      <li><div class="TOCItem">III. Solution</div></li>
+      <li><div class="TOCItem">IV. Syntax</div></li>
+      <li><div class="TOCItem">V. Summary</div></li>
+      <li><div class="TOCItem">VI. Impact On the Standard</div></li>
+     </ul>
+    </dd>
+
+   <dt><div class="NaslovGlavni">I. Abstract</div></dt>
+   <dd>
+    Dynamic constatization of instances.
+   </dd>
+   <dt><div class="NaslovGlavni">II. Motivation</div></dt>
+   <dd>
+    <dl>
+     <dt>Problem 1:</dt>
+     <dd>[<i>Example</i>:
+<code><pre class="TextCode">
+template< typename T>
+ class Container{
+   public:
+     typedef T* iterator;
+     typedef T const* const_iterator;
+     iterator begin();
+     const_iterator begin()const;
+     iterator end();
+     const_iterator end()const;
+     void f();
+     void f()const;
+  };
+
+  Container&lt;int&gt; cont;
+
+  for( auto const &amp; iter : cont ){ // in here we want to be called <i>begin()const</i> and <i>end()const</i>
+  }
+</pre></code>
+    &mdash;<i>end example</i>]<br><br>
+    </dd>
+    <dt>Problem 2:</dt>
+    <dd>
+    [<i>Example</i>:
+<code><pre class="TextCode">
+   void func( Container&lt;int&gt; &amp; c );
+   void func( Container&lt;int&gt; const &amp; c );
+
+   void do_something(){
+    Container&lt;int&gt; cont;
+
+    func(cont); // In here we want to call func( Container&lt;int&gt; const&amp; c );
+   }</pre></code>&mdash;<i>end example</i>]
+<br>
+    </dd>
+   </dl>
+    <br><br>
+  <p class="NovaStranica"></p>
+  </dd>
+  <dt><div class="NaslovGlavni">III. Solution</div></dt>
+<dd>
+  <dl>
+   <dt class="Naslovcic">Solutions within current standard </dt>
+   <dd>
+    <ul>
+        <li>Bloat code with new functions that has different name which will serve to only to only one purpose.<br>
+            Examples are: <code>vector::cbegin</code> and <code>vector::cend</code>, <code>vector::crbegin</code>, <code>vector::crend</code>.
+        </li>
+        <li>Use helper variable with <code>const</code> qualifier.<br>
+<br>[<i>Example</i>:
+<code><pre class="TextCode">  {
+   Container&lt;int&gt; const& ccont = cont;
+   for( auto &amp; iter : cont ){
+   }
+  }
+</pre></code>&mdash;<i>end example</i>]
+        </li>
+      <li>
+        Use some of existing cast operator which will directly lead to misunderstanding and possible to something more serious.
+
+<br>[<i>Example</i>:
+<code><pre class="TextCode">
+
+  // Some companies might forbid usage of reinterpret_cast
+  for( auto const &amp; iter : reinterpret_cast< Container&lt;int&gt; const& >( cont ) ){
+    // ... ... ...
+  }
+
+  for( auto const &amp; iter : static_cast< Container&lt;int&gt; const& >( cont ) ){
+    // ... ... ...
+  }
+  // it is expected that const_cast remove constness not to add
+  for( auto const &amp; iter : const_cast< Container&lt;int&gt; const& >( cont ) ){
+    // ... ... ...
+  }
+
+  for( auto const &amp; iter : ( Container&lt;int&gt; const& )( cont ) ){
+      // ... ... ...
+  }
+  
+</pre></code>
+&mdash;<i>end example</i>]<br><br>
+  In all cases code become less readable if we have type with realy long name e.g. <code>std::map&lt; std::string, std::pair&lt; std::string, std::string &gt; &gt;</code>.
+
+      </li>
+    </ul>
+   </dd>
+
+   <dt  class="Naslovcic" >By adding ability to <code>const</code> to act on instances.</dt>
+ <dd>
+On range loop:<br>
+[<i>Example</i>:
+<blockquote>
+<code><pre class="TextCode">
+Container&lt;int&gt; cont;
+for( auto &iter : const( cont ) ){
+ // ...
+ }
+</pre></code>
+</blockquote>
+&mdash;<i>end example</i>]
+<br><br>
+On instance:<br>
+[<i>Example</i>:
+<blockquote>
+<code><pre class="TextCode">
+Container&lt;int&gt; cont;
+
+func( const( cont ) );
+
+const( cont ).f();
+
+</pre></code>
+</blockquote>
+&mdash;<i>end example</i>]
+<br><br>
+On pointers:<br>
+[<i>Example</i>:
+<blockquote>
+<code><pre class="TextCode">
+Container&lt;int&gt; cont;
+
+Container&lt;int&gt; * cp1 = &amp;cont;
+const( cp1 )->f();
+Container&lt;int&gt; *const cp2 = &amp;cont;
+const( cp2 )->f();
+Container&lt;int&gt; const* cp3 = &amp;cont;
+const( cp3 )->f();
+</pre></code>
+</blockquote>
+&mdash;<i>end example</i>]
+
+
+
+   </dd>
+  </dl>
+ <p class="NovaStranica"></p>
+ </dd>
+  <dt class ="NaslovGlavni">IV. Syntax</dt>
+   <dd>
+       <dl>
+        <dt><i>const-operator:</i></dt>
+         <dd><code>const</code> ( <i>expression</i> )</dd>
+       </dl>
+
+   <p class="NovaStranica"></p>
+   </dd>
+   <dt><div class="NaslovGlavni">V. Summary</div></dt>
+   <dd>
+      <ul>
+       <li>Avoid code bloat by adding functions which to allow explicit call of <code>const</code> functions.</li>
+       <li>Avoid misusing of cast operators to add temporal <code>const</code>ness.</li>
+     <li>Avoid using of temporal <code>const</code> references.</li>
+   </ul>
+
+    <dl>
+    </dl>
+   </dd>
+
+   <dt><div class="NaslovGlavni">VI. Impact On the Standard</div></dt>
+   <dd>
+     <dl>
+       <dt> <div class="NaslovPod ">Core</div> </dt>
+       <dd>No effect.<br>
+           No new keywords. <br>
+           No new tokens. <br>
+           No changes to old syntax. <br>
+           Pure extension. <br>
+           Backward compatible.
+       </dd>
+       <dt><div class="NaslovPod ">Library</div></dt>
+       <dd>No effect.</dd>
+       <dt><div class="NaslovPod ">Existing code.</div></dt>
+       <dd>No effect.<br>
+     </dl>
+   </dd>
+  </dl>
+  <hr shade width="100%" align="center">
+ </body>
+</html>
+
+
