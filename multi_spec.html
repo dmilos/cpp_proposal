@@ -1,0 +1,515 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <title>[C++]Multiple (partial)specialization.</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta name="Author"             content="Dejan D. M. R. Milosavljevic" />
+  <meta name="Reply-to"           content="office@ddmrm.com" />
+  <meta name="resource-type"      content="document" />
+  <meta name="URL"                content="http://www.ddmrm.com" />
+  <meta name="revisit-after"      content="45 days" />
+  <meta name="Keywords"           content="c++ proposal" />
+
+  <style type="text/css">
+<!--
+
+body {
+    margin-top: 20mm;
+    margin-right: 18mm;
+    margin-bottom: 20mm;
+    margin-left: 18mm;
+    border-width: 0;
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    margin: 0;
+    vertical-align: baseline;
+    font-size:16px;
+}
+
+table {
+     vertical-align: baseline;
+}
+.paragraf {
+    text-indent: 10pt;
+}
+
+.IndentedBlock3ex {
+    margin-left: 3ex;
+}
+
+.IndentedBlock2ex {
+    margin-left: 2ex;
+}
+
+.IndentedBlock1ex {
+    margin-left: 1ex;
+}
+.NovaStranica {
+    page-break-before: auto;
+    page-break-after: always;
+}
+
+.NaslovStranice
+{
+ font-size:30px;
+ font-weight:bold;
+}
+
+.NaslovGlavni
+{
+ font-size:28px;
+ font-weight:bold;
+}
+
+.NaslovPod
+ {
+  font-size: 22px;
+  font-weight:bold;
+ }
+
+.Naslovcic
+ {
+  font-size: 18px;
+  font-weight:bold;
+ }
+
+.TextObican
+ {
+    font-size: 15px;
+ }
+.TOCItem
+{
+ font-size:18px;
+ font-weight:bold;
+}
+
+
+.NaslovDefinicije
+{
+    font-size: 10;
+}
+
+.TextCode
+ {
+    font-size: 12px;
+ }
+
+-->
+  </style>
+ </head>
+
+ <body bgcolor="#FFFFFF" text="#000000" class="TextObican">
+  <h1 align="center" > <div class="NaslovStranice">Multiple (partial)specialization</div> </h1>
+   <table border="0" width="100%">
+    <tr>
+     <td width="100%">&nbsp;</td>
+     <td nowrap="nowrap">
+      Document number: <br>
+      Date: <br>
+      Reply to:<br>
+      <br>
+     </td>
+     <td nowrap="nowrap">
+      <br>
+      2018/02/12<br>
+      Dejan D.M. Milosavljevic<br>
+      (dmilos at gmail dot com)<br>
+     </td>
+     <td width="10%">&nbsp;</td>
+    </tr>
+   </table>
+   <dl>
+    <dt><div class="NaslovGlavni">Table of Contents.</div></dt>
+    <dd>
+     <ul>
+      <li><div class="TOCItem">I. Introduction</div></li>
+      <li><div class="TOCItem">II. Motivation and Scope</div></li>
+      <li><div class="TOCItem">III. Solutions</div></li>
+      <li><div class="TOCItem">IV. Design Decisions</div></li>
+      <li><div class="TOCItem">V. Impact On the Standard</div></li>
+      <li><div class="TOCItem">VI. References</div></li>
+     </ul>
+    </dd>
+
+   <dt><div class="NaslovGlavni">I. Introduction</div></dt>
+   <dd>
+     Multiple (partial)specialization.
+     This feature will allow multiple (partial)specialize of template without need for additional code.
+     It is assumed that additional code is something that comes after class definition.<br><br>
+   </dd>
+   <dt><div class="NaslovGlavni">II. Motivation and Scope</div></dt>
+
+      <dd>
+   Usual problem with template specialization is how to reuse existing code for other type.
+   One of idea is to have separate code for each type that will point to previous specialization. But this idea will rise more requests such as modification of existing functions and members.
+   This idea avoid those request by use of existing code at point of (partial)specialization.<br><br>
+
+   It is often that some types can be grouped in manner that share same class specialization.
+   In presented example we have integer group( short, int, long ), rational ( float, double, long double ) and strng ( char*, std::string, std::wstring ).
+    <dl>
+     <dt class="Naslovcic">Problem 1:</dt>
+     <dd>
+       Lets make several groups of types. Each group heed their own specialization.<br>
+       In next example we have two groups.<br>
+       First group contain: <code>char*</code>,  <code>std::string</code>, <code>std::wstring</code>. Second group: <code>float</code>, <code>double</code>, <code>long double</code>.<br>
+
+       Note: This example can be extended with more groups like signed integers, unsigned integers.<br><br>
+
+<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+template&lt; typename T &gt;
+ class A
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt; std::string &gt;
+  {
+   void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
+  };
+template&lt;&gt;
+ class A&lt; char* &gt;
+  { // NOTE: In here we keep "String specialization".
+   void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt; std::wstring &gt;
+  { // NOTE: In here we keep "String specialization".
+   void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt;float &gt;
+  {.
+   void print(){ std::cout &lt;&lt; "Rational specialization" &lt;&lt; std::endl; }
+  };
+template&lt;&gt;
+ class A&lt; double &gt;
+  {
+   void print(){ std::cout &lt;&lt; "Rational  specialization" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt; long double &gt;
+  {
+   void print(){ std::cout &lt;&lt; "Rational  specialization" &lt;&lt; std::endl; }
+  };
+
+</pre></code>
+    &mdash;<i>end example</i>]</blockquote>
+    </dd>
+    <dt class="Naslovcic">Problem 2:</dt>
+    <dd>
+      Lest start with some enum with enough large number of enumerants.<br>
+      Goal is to specialize <code>class E</code> so the enum subgroups have same template specialization.<br>
+      In this example first subgroup are consisted from <code>red</code>, <code>green</code>, <code>blue</code>. <br>
+      Second subgroup: <code>cyan</code>, <code>yellow</code> and <code>magenta</code>.<br><br>
+    <blockquote>[<i>Example</i>:<code><pre class="TextCode">
+
+enum colors{ red, green, blue, cyan, magenta, yellow, orange, pink };
+
+template&lt; enum Colors color = red &gt;
+ class E
+  {
+    void print(){ std::cout &lt;&lt; "Primary template with red default"&lt;&lt; std::endl;  }
+  };
+
+template&lt; &gt;
+ class E&lt; green &gt;
+  {// In here we want to keep primary definition of <i>print</i> function
+    void print(){ std::cout &lt;&lt; "Primary template with red default"&lt;&lt; std::endl;  }
+  };
+
+template&lt; &gt;
+ class E&lt; blue &gt;
+  {// In here we want to keep primary definition of <i>print</i> function
+    void print(){ std::cout &lt;&lt; "Primary template with red default"&lt;&lt; std::endl;  }
+  };
+
+template&lt; &gt;
+ class E&lt; yellow &gt;
+  {// Brand new specialization of <i>print</i> function
+    void print(){ std::cout &lt;&lt; "YELLOW"&lt;&lt; std::endl;  }
+  };
+
+template&lt; &gt;
+ class E&lt; magenta &gt;
+  {// Same as E&lt; yellow &gt;
+    void print(){ std::cout &lt;&lt; "YELLOW"&lt;&lt; std::endl;  }
+  };
+
+  // etc
+</pre>  </code>&mdash;<i>end example</i>]</blockquote>
+
+    </dd>
+
+    <dt class="Naslovcic">Problem 3:</dt>
+      <dd>
+         Similarly like for enums, in here some groups of integers need to share same specialization.
+         Specialize for specific integer values.<br>
+
+
+         <blockquote>[<i>Example</i>:<code><pre class="TextCode">
+
+template&lt; unsigned number&gt;
+ class I
+  {
+    void print(){ std::cout &lt;&lt; "Primary template." &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class I&lt; 0 &gt;
+  {
+    void print(){ std::cout &lt;&lt; " up to 10 and 10 ." &lt;&lt; std::endl; }
+  };
+ /* In here repeat above code with numbers between 1 and 10*/
+template&lt; &gt;
+ class I&lt; 10 &gt;
+  {
+    void print(){ std::cout &lt;&lt; " up to 10 and 10." &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class I&lt; 11 &gt;
+  {
+    void print(){ std::cout &lt;&lt; " up to 100 and 100." &lt;&lt; std::endl; }
+  };
+ /* repeat above code with numbers between 11 and 100*/
+template&lt; &gt;
+ class I&lt; 100 &gt;
+  {
+    void print(){ std::cout &lt;&lt; " up to 100 and 100." &lt;&lt; std::endl; }
+  };
+
+</pre>  </code>&mdash;<i>end example</i>]</blockquote>
+      </dd>
+   </dl>
+    <br><br>
+  <p class="NovaStranica"></p>
+  </dd>
+  <dt><div class="NaslovGlavni">III. Solutions</div></dt>
+<dd>
+  <dl>
+   <dt class="Naslovcic">Solutions within current standard </dt>
+   <dd>
+    <ul>
+      <li> Using copy/paste<br>
+       Already demonstrated in above examples. Lacks are obvious and well known.
+
+      </li>
+      <li> By using macro replacement ( <code>#define</code> ).
+<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+template&lt; typename T &gt;
+ class A
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+#define A_for_string(string_like_type)   \
+    template&lt; &gt;                        \
+     class A&lt; string_like_type T &gt;     \
+      {                                      \
+       void print(){ std::cout &lt;&lt; "String template" &lt;&lt; std::endl; } \
+      }
+
+A_for_string(char*);
+A_for_string(std::string);
+A_for_string(std::wsring);
+</pre>  </code>&mdash;<i>end example</i>]</blockquote>
+
+Replacing template with <code>#define</code> is bad idea.
+And again lacks are obvious and well known.
+
+      </li>
+      <li>
+        Involving the inheritance:
+<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+
+template&lt; typename T &gt;
+ class A
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+template&lt; typename string_like_type &gt;
+ class A_string
+  {
+   void print(){ std::cout &lt;&lt; "String template" &lt;&lt; std::endl; }
+  }
+
+template&lt;&gt;
+ class A&lt; std::string &gt;
+  : public A_string&lt; std::string &gt;
+  {
+   // nothing
+  };
+
+template&lt;&gt;
+ class A&lt; std::wstring &gt;
+  : public A_string&lt; std::wstring &gt;
+  {
+   // nothing
+  };
+
+</pre></code>
+&mdash;<i>end example</i>]</blockquote>
+       Additional class that need to bi hidden from user. This can be consider as code bloat.
+
+      </li>
+    </ul>
+   </dd>
+
+   <dt  class="Naslovcic" >Proposal</dt>
+ <dd>
+    Use list of types in place on one type. Type list should be enclosed with '{' and '}'.<br>
+   All examples can be easily extended in partial specialization examples.
+
+    <dl>
+
+<dt>float, string, ints:</dt>
+<dd>
+ Generalized primary template. Several specialized templates at once with list of types
+
+<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+template&lt; typename T &gt; // Primary template. As per standard
+ class A
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt; <b>{ char*, std::string, std::wstring }</b> &gt; // Instead one type put list of tupes.
+  {
+   void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt; <b>{ float, double, long double }</b> &gt;
+  {.
+   void print(){ std::cout &lt;&lt; "Rational specialization" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt; <b>{ short, int, long }</b> &gt;
+  {
+   void print(){ std::cout &lt;&lt; "Integers" &lt;&lt; std::endl; } //!<
+  };
+
+</pre></code>
+</blockquote>
+&mdash;<i>end example</i>]</blockquote>
+</dd>
+
+
+<dt>enums:</dt>
+<dd>
+ Primary template with default parameter and two more types ( actually enums ).<br>
+ Enums must appear in ascending order.
+
+<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+enum colors{ red, green, blue, cyan, yellow, magenta, orange, pink };
+
+// red is default, green and blue must appear in order of appearance in their definition
+// red shell not appear in list
+template&lt; enum Colors color = red <b>{ green, blue }</b> &gt;
+ class E
+  {
+    void print(){ std::cout &lt;&lt; "Primary template with red default"&lt;&lt; std::endl;  }
+  };
+
+template&lt; &gt;
+ class E&lt; <b>{ cyan, ... , yellow }</b> &gt; // Take all enums between cyan and key
+  {// Brand new specialization of <i>print</i> function
+    void print(){ std::cout &lt;&lt; "YELLOW"&lt;&lt; std::endl;  }
+  };
+
+</pre></code>
+&mdash;<i>end example</i>]</blockquote>
+</dd>
+
+<dt>Integer:</dt>
+<dd>
+ Demonstration of massive specialization on very small space. <br>
+ Only integral types can use ellipsis.<br>
+ Numbers must appear in ascending order.
+
+<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+
+template&lt; unsigned number = 0 &gt;
+ class I
+  {
+    void print(){ std::cout &lt;&lt; "Primary template." &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class I&lt; <b>{ 1, ..., 10 }</b> &gt; // Must appear in increasing order
+  {
+    void print(){ std::cout &lt;&lt; " up to 10 and 10 ." &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class I&lt; <b>{ 11, ..., 100 }</b> &gt;
+  {
+    void print(){ std::cout &lt;&lt; " from 11 to 100 and 100." &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class I&lt; 42 &gt; // ERROR: Already specialized.
+  {
+    void print(){ std::cout &lt;&lt; " from 11 to 100 and 100." &lt;&lt; std::endl; }
+  };
+
+</pre></code>
+&mdash;<i>end example</i>]</blockquote>
+</dd>
+
+    </dl>
+   </dd>
+  </dl>
+ <p class="NovaStranica"></p>
+ </dd>
+   <dt><div class="NaslovGlavni">IV. Design Decisions</div></dt>
+   <dd>
+      <ul>
+       <li>Massive (partial)specialization at the cost of one definition.</li>
+       <li>Due to fact the that same code are shared with other types it is not possible make different implementation mistakenly for other type of same group.</li>
+       <li>There is no need for additional code like in N3596 or similar solution. Which is one of the main goal i.e no additional code. One place and start place only.</li>
+       <li>Do not solve (and not intention): Reuse of existing (partial)specialization by modification, function/member excluding/adding/redefining.
+        For this see: N3596 Code Reuse in Class Template Specialization.
+       </li>
+   </ul>
+    <dl>
+    </dl>
+   </dd>
+
+   <dt><div class="NaslovGlavni">V. Impact On the Standard</div></dt>
+   <dd>
+     <dl>
+       <dt> <div class="NaslovPod ">Core</div> </dt>
+       <dd>No effect.<br>
+           No new keywords. <br>
+           No new tokens. <br>
+           No changes to old syntax. <br>
+           Pure extension. <br>
+           Backward compatible.
+       </dd>
+       <dt><div class="NaslovPod ">Library</div></dt>
+       <dd>No effect.<br> No new class.<br> No new functions. </dd>
+       <dt><div class="NaslovPod ">Existing code.</div></dt>
+       <dd>No effect.<br>
+     </dl>
+   </dd>
+  </dl>
+  <hr shade width="100%" align="center">
+ </body>
+</html>
+
+
+
+
+
+
