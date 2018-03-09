@@ -76,6 +76,12 @@ table {
   font-weight:bold;
  }
 
+.NaslovcicJosManji
+ {
+  font-size: 16px;
+  font-weight:bold;
+ }
+
 .TextObican
  {
     font-size: 15px;
@@ -160,42 +166,35 @@ table {
 
 <blockquote>[<i>Example</i>:<code><pre class="TextCode">
 template&lt; typename T &gt;
- class A
-  {
+ class A {
    void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
   };
 
 template&lt;&gt;
- class A&lt; std::string &gt;
-  {
+ class A&lt; std::string &gt; {
    void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
   };
 template&lt;&gt;
- class A&lt; char* &gt;
-  { // NOTE: In here we keep "String specialization".
-   void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
-  };
-
-template&lt;&gt;
- class A&lt; std::wstring &gt;
-  { // NOTE: In here we keep "String specialization".
+ class A&lt; char* &gt; { // NOTE: In here we keep "String specialization".
    void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
   };
 
 template&lt;&gt;
- class A&lt;float &gt;
-  {.
+ class A&lt; std::wstring &gt; { // NOTE: In here we keep "String specialization".
+   void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt;float &gt; {
    void print(){ std::cout &lt;&lt; "Rational specialization" &lt;&lt; std::endl; }
   };
 template&lt;&gt;
- class A&lt; double &gt;
-  {
+ class A&lt; double &gt; {
    void print(){ std::cout &lt;&lt; "Rational  specialization" &lt;&lt; std::endl; }
   };
 
 template&lt;&gt;
- class A&lt; long double &gt;
-  {
+ class A&lt; long double &gt; {
    void print(){ std::cout &lt;&lt; "Rational  specialization" &lt;&lt; std::endl; }
   };
 
@@ -213,32 +212,27 @@ template&lt;&gt;
 enum colors{ red, green, blue, cyan, magenta, yellow, orange, pink };
 
 template&lt; enum Colors color = red &gt;
- class E
-  {
+ class E {
     void print(){ std::cout &lt;&lt; "Primary template with red default"&lt;&lt; std::endl;  }
   };
 
 template&lt; &gt;
- class E&lt; green &gt;
-  {// In here we want to keep primary definition of <i>print</i> function
+ class E&lt; green &gt; { // In here we want to keep primary definition of <i>print</i> function
     void print(){ std::cout &lt;&lt; "Primary template with red default"&lt;&lt; std::endl;  }
   };
 
 template&lt; &gt;
- class E&lt; blue &gt;
-  {// In here we want to keep primary definition of <i>print</i> function
+ class E&lt; blue &gt; { // In here we want to keep primary definition of <i>print</i> function
     void print(){ std::cout &lt;&lt; "Primary template with red default"&lt;&lt; std::endl;  }
   };
 
 template&lt; &gt;
- class E&lt; yellow &gt;
-  {// Brand new specialization of <i>print</i> function
+ class E&lt; yellow &gt; { // Brand new specialization of <i>print</i> function
     void print(){ std::cout &lt;&lt; "YELLOW"&lt;&lt; std::endl;  }
   };
 
 template&lt; &gt;
- class E&lt; magenta &gt;
-  {// Same as E&lt; yellow &gt;
+ class E&lt; magenta &gt; { // Same as E&lt; yellow &gt;
     void print(){ std::cout &lt;&lt; "YELLOW"&lt;&lt; std::endl;  }
   };
 
@@ -256,31 +250,26 @@ template&lt; &gt;
          <blockquote>[<i>Example</i>:<code><pre class="TextCode">
 
 template&lt; unsigned number&gt;
- class I
-  {
+ class I {
     void print(){ std::cout &lt;&lt; "Primary template." &lt;&lt; std::endl; }
   };
 
 template&lt; &gt;
- class I&lt; 0 &gt;
-  {
+ class I&lt; 0 &gt; {
     void print(){ std::cout &lt;&lt; " up to 10 and 10 ." &lt;&lt; std::endl; }
   };
  /* In here repeat above code with numbers between 1 and 10*/
 template&lt; &gt;
- class I&lt; 10 &gt;
-  {
+ class I&lt; 10 &gt; {
     void print(){ std::cout &lt;&lt; " up to 10 and 10." &lt;&lt; std::endl; }
   };
 
 template&lt; &gt;
- class I&lt; 11 &gt;
-  {
+ class I&lt; 11 &gt; {
     void print(){ std::cout &lt;&lt; " up to 100 and 100." &lt;&lt; std::endl; }
   };
  /* repeat above code with numbers between 11 and 100*/
-template&lt; &gt;
- class I&lt; 100 &gt;
+template&lt; &gt;  class I&lt; 100 &gt;
   {
     void print(){ std::cout &lt;&lt; " up to 100 and 100." &lt;&lt; std::endl; }
   };
@@ -296,71 +285,66 @@ template&lt; &gt;
   <dl>
    <dt class="Naslovcic">Solutions within current standard </dt>
    <dd>
-    <ul>
-      <li> Using copy/paste<br>
+    <dl>
+      <dt class="NaslovcicJosManji">Using copy/paste</dt>
+      <dd>
        Already demonstrated in above examples. Lacks are obvious and well known.
-
-      </li>
-      <li> By using macro replacement ( <code>#define</code> ).
-<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+      </dd>
+      <dt class="NaslovcicJosManji"> By using macro replacement ( <code>#define</code> ).</dt>
+      <dd>
+[<i>Example</i>:<code><pre class="TextCode">
 template&lt; typename T &gt;
- class A
-  {
+ class A {
    void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
   };
 
-#define A_for_string(string_like_type)   \
-    template&lt; &gt;                        \
-     class A&lt; string_like_type T &gt;     \
-      {                                      \
-       void print(){ std::cout &lt;&lt; "String template" &lt;&lt; std::endl; } \
+#define A_for_string(string_like_type)    \
+    template&lt; &gt;    \
+     class A&lt; string_like_type T &gt; {    \
+       void print(){ std::cout &lt;&lt; "String template" &lt;&lt; std::endl; }    \
       }
 
 A_for_string(char*);
 A_for_string(std::string);
 A_for_string(std::wsring);
-</pre>  </code>&mdash;<i>end example</i>]</blockquote>
+</pre>  </code>&mdash;<i>end example</i>]
 
 Replacing template with <code>#define</code> is bad idea.
 And again lacks are obvious and well known.
 
-      </li>
-      <li>
-        Involving the inheritance:
-<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+      </dd>
+      <dt class="NaslovcicJosManji">Involving the inheritance</dt>
+      <dd>
+[<i>Example</i>:<code><pre class="TextCode">
 
 template&lt; typename T &gt;
- class A
-  {
+ class A {
    void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
   };
 
 template&lt; typename string_like_type &gt;
- class A_string
-  {
+ class A_string {
    void print(){ std::cout &lt;&lt; "String template" &lt;&lt; std::endl; }
   }
 
 template&lt;&gt;
  class A&lt; std::string &gt;
-  : public A_string&lt; std::string &gt;
-  {
+  : public A_string&lt; std::string &gt; {
    // nothing
   };
 
 template&lt;&gt;
  class A&lt; std::wstring &gt;
-  : public A_string&lt; std::wstring &gt;
-  {
+  : public A_string&lt; std::wstring &gt; {
    // nothing
   };
 
 </pre></code>
-&mdash;<i>end example</i>]</blockquote>
-       Additional class that need to bi hidden from user. This can be consider as code bloat.
+&mdash;<i>end example</i>]
+      <br>In this case there is additional class that need to bi hidden from user. This can be consider as code bloat.
 
-      </li>
-    </ul>
+      </dd>
+    </dl>
    </dd>
 
    <dt  class="Naslovcic" >Proposal</dt>
@@ -376,27 +360,23 @@ template&lt;&gt;
 
 <blockquote>[<i>Example</i>:<code><pre class="TextCode">
 template&lt; typename T &gt; // Primary template. As per standard
- class A
-  {
+ class A {
    void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
   };
 
 template&lt;&gt;
- class A&lt; <b>{ char*, std::string, std::wstring }</b> &gt; // Instead one type put list of tupes.
-  {
+ class A&lt; <b>{ char*, std::string, std::wstring }</b> &gt; { // Instead one type it is list of types.
    void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
   };
 
 template&lt;&gt;
- class A&lt; <b>{ float, double, long double }</b> &gt;
-  {.
+ class A&lt; <b>{ float, double, long double }</b> &gt; {
    void print(){ std::cout &lt;&lt; "Rational specialization" &lt;&lt; std::endl; }
   };
 
-template&lt;&gt;
- class A&lt; <b>{ short, int, long }</b> &gt;
-  {
-   void print(){ std::cout &lt;&lt; "Integers" &lt;&lt; std::endl; } //!<
+template&lt; typename T &gt;
+ class A&lt; std::vector &lt <b>{ T, short, int, long }</b> &gt; &gt; {
+   void print(){ std::cout &lt;&lt; "std::vector &lt; Integers &gt;" &lt;&lt; std::endl; }
   };
 
 </pre></code>
@@ -413,17 +393,15 @@ template&lt;&gt;
 <blockquote>[<i>Example</i>:<code><pre class="TextCode">
 enum colors{ red, green, blue, cyan, yellow, magenta, orange, pink };
 
-// red is default, green and blue must appear in order of appearance in their definition
-// red shell not appear in list
-template&lt; enum Colors color = red <b>{ green, blue }</b> &gt;
- class E
-  {
+// red is default, Other enums in list must appear in order of appearance in their definition.
+template&lt; enum Colors color = red <b>{ red, ... , blue }</b> &gt;
+ class E {
     void print(){ std::cout &lt;&lt; "Primary template with red default"&lt;&lt; std::endl;  }
   };
 
 template&lt; &gt;
- class E&lt; <b>{ cyan, ... , yellow }</b> &gt; // Take all enums between cyan and key
-  {// Brand new specialization of <i>print</i> function
+ class E&lt; <b>{ cyan, ... , yellow }</b> &gt; { // Take all enums between cyan and key
+  // Brand new specialization of <i>print</i> function
     void print(){ std::cout &lt;&lt; "YELLOW"&lt;&lt; std::endl;  }
   };
 
@@ -440,27 +418,24 @@ template&lt; &gt;
 <blockquote>[<i>Example</i>:<code><pre class="TextCode">
 
 template&lt; unsigned number = 0 &gt;
- class I
-  {
+ class I {
     void print(){ std::cout &lt;&lt; "Primary template." &lt;&lt; std::endl; }
   };
 
 template&lt; &gt;
- class I&lt; <b>{ 1, ..., 10 }</b> &gt; // Must appear in increasing order
-  {
+ class I&lt; <b>{ 1, ..., 10 }</b> &gt;{ // Numbers must appear in increasing order
     void print(){ std::cout &lt;&lt; " up to 10 and 10 ." &lt;&lt; std::endl; }
   };
 
 template&lt; &gt;
- class I&lt; <b>{ 11, ..., 100 }</b> &gt;
-  {
+ class I&lt; <b>{ 11, ..., 100 }</b> &gt; {
     void print(){ std::cout &lt;&lt; " from 11 to 100 and 100." &lt;&lt; std::endl; }
   };
 
 template&lt; &gt;
- class I&lt; 42 &gt; // ERROR: Already specialized.
+ class I&lt; 42 &gt;{ // ERROR: Already specialized.
   {
-    void print(){ std::cout &lt;&lt; " from 11 to 100 and 100." &lt;&lt; std::endl; }
+    void print(){ std::cout &lt;&lt; " 42." &lt;&lt; std::endl; }
   };
 
 </pre></code>
@@ -476,10 +451,9 @@ template&lt; &gt;
    <dd>
       <ul>
        <li>Massive (partial)specialization at the cost of one definition.</li>
-       <li>Due to fact the that same code are shared with other types it is not possible make different implementation mistakenly for other type of same group.</li>
+       <li>Due to fact the that same code are shared with other types it is not possible make different implementation mistakenly for some type of same group.</li>
        <li>There is no need for additional code like in N3596 or similar solution. Which is one of the main goal i.e no additional code. One place and start place only.</li>
        <li>Do not solve (and not intention): Reuse of existing (partial)specialization by modification, function/member excluding/adding/redefining.
-        For this see: N3596 Code Reuse in Class Template Specialization.
        </li>
    </ul>
     <dl>
