@@ -164,7 +164,7 @@ table {
 
        Note: This example can be extended with more groups like signed integers, unsigned integers.<br><br>
 
-<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+<br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
 template&lt; typename T &gt;
  class A {
    void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
@@ -197,9 +197,7 @@ template&lt;&gt;
  class A&lt; long double &gt; {
    void print(){ std::cout &lt;&lt; "Rational  specialization" &lt;&lt; std::endl; }
   };
-
-</pre></code>
-    &mdash;<i>end example</i>]</blockquote>
+</pre></blockquote></code>&mdash;<i>end example</i>]
     </dd>
     <dt class="Naslovcic">Problem 2:</dt>
     <dd>
@@ -207,7 +205,7 @@ template&lt;&gt;
       Goal is to specialize <code>class E</code> so the enum subgroups have same template specialization.<br>
       In this example first subgroup are consisted from <code>red</code>, <code>green</code>, <code>blue</code>. <br>
       Second subgroup: <code>cyan</code>, <code>yellow</code> and <code>magenta</code>.<br><br>
-    <blockquote>[<i>Example</i>:<code><pre class="TextCode">
+    <br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
 
 enum colors{ red, green, blue, cyan, magenta, yellow, orange, pink };
 
@@ -237,7 +235,7 @@ template&lt; &gt;
   };
 
   // etc
-</pre>  </code>&mdash;<i>end example</i>]</blockquote>
+</pre></blockquote></code>&mdash;<i>end example</i>]
 
     </dd>
 
@@ -247,7 +245,7 @@ template&lt; &gt;
          Specialize for specific integer values.<br>
 
 
-         <blockquote>[<i>Example</i>:<code><pre class="TextCode">
+         <br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
 
 template&lt; unsigned number&gt;
  class I {
@@ -273,8 +271,7 @@ template&lt; &gt;  class I&lt; 100 &gt;
   {
     void print(){ std::cout &lt;&lt; " up to 100 and 100." &lt;&lt; std::endl; }
   };
-
-</pre>  </code>&mdash;<i>end example</i>]</blockquote>
+</pre></blockquote></code>&mdash;<i>end example</i>]
       </dd>
    </dl>
     <br><br>
@@ -292,7 +289,7 @@ template&lt; &gt;  class I&lt; 100 &gt;
       </dd>
       <dt class="NaslovcicJosManji"> By using macro replacement ( <code>#define</code> ).</dt>
       <dd>
-[<i>Example</i>:<code><pre class="TextCode">
+<br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
 template&lt; typename T &gt;
  class A {
    void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
@@ -304,10 +301,10 @@ template&lt; typename T &gt;
        void print(){ std::cout &lt;&lt; "String template" &lt;&lt; std::endl; }    \
       }
 
-A_for_string(char*);
-A_for_string(std::string);
-A_for_string(std::wsring);
-</pre>  </code>&mdash;<i>end example</i>]
+A_for_string( char* );
+A_for_string( std::string );
+A_for_string( std::wsring );
+</pre></blockquote></code>&mdash;<i>end example</i>]
 
 Replacing template with <code>#define</code> is bad idea.
 And again lacks are obvious and well known.
@@ -315,8 +312,7 @@ And again lacks are obvious and well known.
       </dd>
       <dt class="NaslovcicJosManji">Involving the inheritance</dt>
       <dd>
-[<i>Example</i>:<code><pre class="TextCode">
-
+<br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
 template&lt; typename T &gt;
  class A {
    void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
@@ -338,9 +334,7 @@ template&lt;&gt;
   : public A_string&lt; std::wstring &gt; {
    // nothing
   };
-
-</pre></code>
-&mdash;<i>end example</i>]
+</pre></blockquote></code>&mdash;<i>end example</i>]
       <br>In this case there is additional class that need to bi hidden from user. This can be consider as code bloat.
 
       </dd>
@@ -348,17 +342,15 @@ template&lt;&gt;
    </dd>
 
    <dt  class="Naslovcic" >Proposal</dt>
- <dd>
-    Use list of types in place on one type. Type list should be enclosed with '{' and '}'.<br>
-   All examples can be easily extended in partial specialization examples.
+    <dd>
+      Use list of types in place on one type. Type list should be enclosed with '{' and '}'.<br>
+      All examples can be easily extended in partial specialization examples.
+     <dl>
+       <dt>float, string, ints:</dt>
+       <dd>
+        Generalized primary template. Several specialized templates at once with list of types
 
-    <dl>
-
-<dt>float, string, ints:</dt>
-<dd>
- Generalized primary template. Several specialized templates at once with list of types
-
-<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+<br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
 template&lt; typename T &gt; // Primary template. As per standard
  class A {
    void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
@@ -374,14 +366,11 @@ template&lt;&gt;
    void print(){ std::cout &lt;&lt; "Rational specialization" &lt;&lt; std::endl; }
   };
 
-template&lt; typename T &gt;
- class A&lt; std::vector &lt <b>{ T, short, int, long }</b> &gt; &gt; {
+template&lt; typename T &gt; 
+ class A&lt; std::vector &lt <b>{ T, short, int, long }</b> &gt; &gt; { // Partial and and full specialization at once.
    void print(){ std::cout &lt;&lt; "std::vector &lt; Integers &gt;" &lt;&lt; std::endl; }
   };
-
-</pre></code>
-</blockquote>
-&mdash;<i>end example</i>]</blockquote>
+</pre></blockquote></code>&mdash;<i>end example</i>]
 </dd>
 
 
@@ -390,7 +379,7 @@ template&lt; typename T &gt;
  Primary template with default parameter and two more types ( actually enums ).<br>
  Enums must appear in ascending order.
 
-<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+<br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
 enum colors{ red, green, blue, cyan, yellow, magenta, orange, pink };
 
 // red is default, Other enums in list must appear in order of appearance in their definition.
@@ -404,9 +393,7 @@ template&lt; &gt;
   // Brand new specialization of <i>print</i> function
     void print(){ std::cout &lt;&lt; "YELLOW"&lt;&lt; std::endl;  }
   };
-
-</pre></code>
-&mdash;<i>end example</i>]</blockquote>
+</pre></blockquote></code>&mdash;<i>end example</i>]
 </dd>
 
 <dt>Integer:</dt>
@@ -415,8 +402,7 @@ template&lt; &gt;
  Only integral types can use ellipsis.<br>
  Numbers must appear in ascending order.
 
-<blockquote>[<i>Example</i>:<code><pre class="TextCode">
-
+<br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
 template&lt; unsigned number = 0 &gt;
  class I {
     void print(){ std::cout &lt;&lt; "Primary template." &lt;&lt; std::endl; }
@@ -437,11 +423,51 @@ template&lt; &gt;
   {
     void print(){ std::cout &lt;&lt; " 42." &lt;&lt; std::endl; }
   };
-
-</pre></code>
-&mdash;<i>end example</i>]</blockquote>
+</pre></blockquote></code>&mdash;<i>end example</i>]
 </dd>
 
+<dt> Multi specialization on two ( or more ) parameters:</dt>
+<dd>
+
+When two or more parameters are list of types ( or integers ) all pairs ( tuples ) will be specialized.
+
+<br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
+template&lt; typename S, typename T &gt;
+ class D {
+    void print(){ std::cout &lt;&lt; "Primary template." &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class D&lt; <b>{ int, long }, { std::string, std::wstring }</b> &gt;{
+    void print(){ std::cout &lt;&lt; "{ int, long }, { std::string, std::wstring }" &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class D&lt; <b>int, std::wstring </b>&gt;{ // ERROR" Specialization already exists
+    void print(){ std::cout &lt;&lt; " int, std::wstring " &lt;&lt; std::endl; }
+  };
+</pre></blockquote></code>&mdash;<i>end example</i>]
+<br><br>
+It is not possible to have some exception for some pair ( tuples ) of types.
+<br>[<i>Example</i>:<code><blockquote><pre class="TextCode">
+template&lt; typename S, typename T &gt;
+ class E {
+    void print(){ std::cout &lt;&lt; "Primary template." &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class E&lt; <b>int, std::wstring </b>&gt;{ // OK. Specialization for int and std::wstring
+    void print(){ std::cout &lt;&lt; " int, std::wstring " &lt;&lt; std::endl; }
+  };
+  
+template&lt; &gt;
+ class E&lt; <b>{ int, long }, { std::string, std::wstring }</b> &gt;{ // ERROR: One pair is already specialized.
+    void print(){ std::cout &lt;&lt; "{ int, long }, { std::string, std::wstring }" &lt;&lt; std::endl; }
+  };
+
+</pre></blockquote></code>&mdash;<i>end example</i>]
+
+</dd>
     </dl>
    </dd>
   </dl>
