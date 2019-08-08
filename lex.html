@@ -2,27 +2,164 @@
 <html>
 <head>
     <title>Lex</title>
+     <style type="text/css">
+<!--
+
+body {
+    margin-top: 20mm;
+    margin-right: 18mm;
+    margin-bottom: 20mm;
+    margin-left: 18mm;
+    border-width: 0;
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    margin: 0;
+    vertical-align: baseline;
+    font-size:16px;
+}
+
+table {
+     vertical-align: baseline;
+}
+.paragraf {
+    text-indent: 10pt;
+}
+
+.IndentedBlock3ex {
+    margin-left: 3ex;
+}
+
+.IndentedBlock2ex {
+    margin-left: 2ex;
+}
+
+.IndentedBlock1ex {
+    margin-left: 1ex;
+}
+.NovaStranica {
+    page-break-before: auto;
+    page-break-after: always;
+}
+
+.NaslovStranice
+{
+ font-size:30px;
+ font-weight:bold;
+}
+
+.NaslovGlavni
+{
+ font-size:28px;
+ font-weight:bold;
+}
+
+.NaslovPod
+ {
+  font-size: 22px;
+  font-weight:bold;
+ }
+
+.Naslovcic
+ {
+  font-size: 18px;
+  font-weight:bold;
+ }
+
+.NaslovcicJosManji
+ {
+  font-size: 16px;
+  font-weight:bold;
+ }
+
+.TextObican
+ {
+    font-size: 15px;
+ }
+.TOCItem
+{
+ font-size:18px;
+ font-weight:bold;
+}
+
+
+.NaslovDefinicije
+{
+    font-size: 10;
+}
+
+.TextCode
+ {
+    font-size: 12px;
+ }
+
+-->
+  </style>
 </head>
 <body>
+
+		<h1 align="center" > <div class="NaslovStranice">NAmed Parameters</div> </h1>
+		<table border="0" width="100%">
+			<tr>
+				<td width="100%">&nbsp;</td>
+				<td nowrap="nowrap">
+					Document number: <br>
+					Date: <br>
+					Reply to:<br>
+					<br>
+				</td>
+				<td nowrap="nowrap">
+					<br>
+					2019/09/10<br>
+					Dejan D.M. Milosavljevic<br>
+					(dmilos at gmail dot com)<br>
+				</td>
+				<td width="10%">&nbsp;</td>
+			</tr>
+		</table>
+		<dl>
+			<dt><div class="NaslovGlavni">Table of Contents.</div></dt>
+			<dd>
+				<ul>
+					<li><div class="TOCItem">I. Introduction</div></li>
+					<li><div class="TOCItem">II. Motivation and Scope</div></li>
+					<li><div class="TOCItem">III. Solutions</div></li>
+					<li><div class="TOCItem">IV. Design Decisions</div></li>
+					<li><div class="TOCItem">V. Impact On the Standard</div></li>
+					<li><div class="TOCItem">VI. References</div></li>
+				</ul>
+			</dd>
+
+			<dt><div class="NaslovGlavni">I. Introduction</div></dt>
+			<dd>
+				Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed.
+                In here will be presented one possible implementation of lex.
+			</dd>
+			<dt><div class="NaslovGlavni">II. Motivation and Scope</div></dt>
+			<dd>
+			There is a trend to add more features to existing regular expression.<br>
+			Main reason for this i that regular expression can ( and must ) be implemented only by using finite state machines.<br>
+			And there should be guarantee that implementation use finite state machines.<br>
+			With this it is possible to guarantee time and complexity of regex execution( if not ).<br>
+			See: Chomsky_hierarchy.
+
+			</DD>
+			<dt><div class="NaslovGlavni">III. Solutions</div></dt>
+			<dd>
+				Add lex.<br>
+
 <pre>
-    Motivation
-    1 . regex should stay regex
-    2 . A Bit of Theory
-     - https://en.wikipedia.org/wiki/Chomsky_hierarchy
-    3. A bit of history
-    - https://en.wikipedia.org/wiki/Lex_%28software%29
-
-
-    Example:
+                Code sample:
     typedef  std::lex&lt;int, char&gt; lex_t;
     lex_t l;
 
-    l.token( r1, []( lex_t::match_type const& )->lex_t::token_type{ return 0; });
-    l.token( r2, []( lex_t::match_type const& )->lex_t::token_type{ return 1; });
+    l.token( 0, r1, []( lex_t::match_type const& mt )->void{  });
+    l.token( 1, r2, []( lex_t::match_type const& mt )->void{  });
     l.compile();
 
     std::ifstream ifs("test1.txt")
-    l.start();
+    l.reset();
     while( ifs.eof() )
     {
         l.eat( ifs.get() );
@@ -37,6 +174,80 @@
     l.done(); //! No more input. Clear internal state
 </pre>
 
+<pre>
+
+
+    template< character_name >
+      class lex
+       {
+        typedef regex_type;
+        typedef action_type;
+        typedef char_type;
+        typedef size_type;
+
+        // Container things
+        void clear(); //! Clear everything
+        size_type size()const;
+        iterator begin();
+        iterator_const cbegin()const;
+        iterator end();
+        iterator_const cend()const;
+        void erase( iterator );
+
+        bool push( regex_type, action_type );
+
+        // the logic.
+        bool compile();
+        bool eat( char_type ); //! processing one character
+        bool good()const; //! No push/remove performed after compile
+        bool restart(); //! clear internal parse state
+       };
+
+</pre>
+
+
+
+			</dd>
+			<dt><div class="NaslovGlavni">IV. Design Decisions</div></dt>
+			<dd>
+				<ul>
+					<li>TODO.</li>
+				</ul>
+			</dd>
+
+			<dt><div class="NaslovGlavni">V. Impact On the Standard</div></dt>
+			<dd>
+				<dl>
+					<dt> <div class="NaslovPod ">Core</div> </dt>
+					<dd>
+						None. This is library issue.
+					</dd>
+					<dt><div class="NaslovPod ">Library</div></dt>
+					<dd>None. This is new feature.</dd>
+					<dt><div class="NaslovPod ">Existing code.</div></dt>
+					<dd>None. New class will be under std namespace.</dd>
+				</dl>
+			</dd>
+
+
+			<dt><div class="NaslovGlavni">VI. Links</div></dt>
+			<dd>
+				<dl>
+					<dt> <div class="NaslovPod ">Core</div> </dt>
+					<dd>
+
+            2 . Chomsky_hierarchy
+            - https://en.wikipedia.org/wiki/Chomsky_hierarchy
+            3. A bit of history
+            - https://en.wikipedia.org/wiki/Lex_%28software%29
+
+					</dd>
+				</dl>
+			</dd>
+
+
+		</dl>
+		<hr shade width="100%" align="center">
 
 </body>
 </html>
