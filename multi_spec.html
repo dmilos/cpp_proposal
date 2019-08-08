@@ -144,7 +144,7 @@ table {
    <dd>
      Multiple (partial)specialization.
      This feature will allow multiple (partial)specialize of template without need for additional code.
-     It is assumed that additional code is something that comes after class definition.<br><br>
+     It is assumed that extra/additional code is something that comes after class definition or (partial) specialization.<br><br>
    </dd>
    <dt><div class="NaslovGlavni">II. Motivation and Scope</div></dt>
 
@@ -189,12 +189,12 @@ template&lt;&gt;
    void print(){ std::cout &lt;&lt; "Rational specialization" &lt;&lt; std::endl; }
   };
 template&lt;&gt;
- class A&lt; double &gt; {
+ class A&lt; double &gt; { // NOTE: Same as <b>foat</b>
    void print(){ std::cout &lt;&lt; "Rational  specialization" &lt;&lt; std::endl; }
   };
 
 template&lt;&gt;
- class A&lt; long double &gt; {
+ class A&lt; long double &gt; { // NOTE: Same as <b>foat</b>
    void print(){ std::cout &lt;&lt; "Rational  specialization" &lt;&lt; std::endl; }
   };
 </pre></blockquote></code>&mdash;<i>end example</i>]
@@ -443,7 +443,7 @@ template&lt; &gt;
   };
 
 template&lt; &gt;
- class D&lt; <b>int, std::wstring </b>&gt;{ // ERROR" Specialization already exists
+ class D&lt; <b>int, std::wstring </b>&gt;{ // ERROR: Specialization already exists
     void print(){ std::cout &lt;&lt; " int, std::wstring " &lt;&lt; std::endl; }
   };
 </pre></blockquote></code>&mdash;<i>end example</i>]
@@ -500,7 +500,7 @@ template&lt; &gt;
        <dt><div class="NaslovPod ">Library</div></dt>
        <dd>No effect.<br> No new class.<br> No new functions. </dd>
        <dt><div class="NaslovPod ">Existing code.</div></dt>
-       <dd>No effect.<br>
+       <dd>No effect.</dd>
      </dl>
    </dd>
   </dl>

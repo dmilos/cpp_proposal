@@ -1,0 +1,449 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <title>[C++]Code Reuse in Class Template Specialization.</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta name="Author"             content="Dejan D. M. R. Milosavljevic" />
+  <meta name="Reply-to"           content="office@ddmrm.com" />
+  <meta name="resource-type"      content="document" />
+  <meta name="URL"                content="http://www.ddmrm.com" />
+  <meta name="revisit-after"      content="45 days" />
+  <meta name="Keywords"           content="c++ proposal" />
+
+  <style type="text/css">
+<!--
+
+body {
+    margin-top: 20mm;
+    margin-right: 18mm;
+    margin-bottom: 20mm;
+    margin-left: 18mm;
+    border-width: 0;
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    margin: 0;
+    vertical-align: baseline;
+    font-size:16px;
+}
+
+table {
+     vertical-align: baseline;
+}
+.paragraf {
+    text-indent: 10pt;
+}
+
+.IndentedBlock3ex {
+    margin-left: 3ex;
+}
+
+.IndentedBlock2ex {
+    margin-left: 2ex;
+}
+
+.IndentedBlock1ex {
+    margin-left: 1ex;
+}
+.NovaStranica {
+    page-break-before: auto;
+    page-break-after: always;
+}
+
+.NaslovStranice
+{
+ font-size:30px;
+ font-weight:bold;
+}
+
+.NaslovGlavni
+{
+ font-size:28px;
+ font-weight:bold;
+}
+
+.NaslovPod
+ {
+  font-size: 22px;
+  font-weight:bold;
+ }
+
+.Naslovcic
+ {
+  font-size: 18px;
+  font-weight:bold;
+ }
+
+.TextObican
+ {
+    font-size: 15px;
+ }
+.TOCItem
+{
+ font-size:18px;
+ font-weight:bold;
+}
+
+
+.NaslovDefinicije
+{
+    font-size: 10;
+}
+
+.TextCode
+ {
+    font-size: 12px;
+ }
+
+-->
+  </style>
+ </head>
+
+ <body bgcolor="#FFFFFF" text="#000000" class="TextObican">
+  <h1 align="center" > <div class="NaslovStranice">Code Reuse in Class Template Specialization</div> </h1>
+   <table border="0" width="100%">
+    <tr>
+     <td width="100%">&nbsp;</td>
+     <td nowrap="nowrap">
+      Document number: <br>
+      Date: <br>
+      Reply to:<br>
+      <br>
+     </td>
+     <td nowrap="nowrap">
+      <br>
+      2018/02/12<br>
+      Dejan D.M. Milosavljevic<br>
+      (dmilos at gmail dot com)<br>
+     </td>
+     <td width="10%">&nbsp;</td>
+    </tr>
+   </table>
+   <dl>
+    <dt><div class="NaslovGlavni">Table of Contents.</div></dt>
+    <dd>
+     <ul>
+      <li><div class="TOCItem">I. Abstract</div></li>
+      <li><div class="TOCItem">II. Motivation</div></li>
+      <li><div class="TOCItem">III. Solution</div></li>
+      <li><div class="TOCItem">IV. Summary</div></li>
+      <li><div class="TOCItem">V. Impact On the Standard</div></li>
+     </ul>
+    </dd>
+
+   <dt><div class="NaslovGlavni">I. Abstract</div></dt>
+   <dd>
+    This proposal describe one solution how to reuse exiting template definition/specialization to create another specialization with ability to modify taken interface.
+   </dd>
+   <dt><div class="NaslovGlavni">II. Motivation</div></dt>
+   <dd>
+    <dl>
+     <dt class="Naslovcic">Problem 1:</dt>
+     <dd>
+       Lets make several groups of types. Each group will have same specialization.<br>
+       In next example we have two groups:<br>
+       First group contain: <code>char*</code>,  <code>std::string</code>, <code>std::wstring</code>. Second group: <code>float</code>, <code>double</code>, <code>long double</code>.<br>
+
+       Note: This example can be extended with more groups like signed integers, unsigned integers.<br><br>
+
+<blockquote>[<i>Example</i>:<code><pre class="TextCode">
+template&lt; typename T &gt;
+ class A {
+   public:
+   void common(){ std::cout &lt;&lt; "Common processing" &lt;&lt; std::endl; }
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+template&lt;&gt;
+ class A&lt; std::string &gt;
+  {
+   public:
+   // common function which we want to reuse. In here copy/paste is use to simulate this effect.
+   void common(){ std::cout &lt;&lt; "Common processing" &lt;&lt; std::endl; }
+   void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
+   int a; // Specific for string
+  };
+
+template&lt;&gt;
+ class A&lt; std::wstring &gt;
+  {
+   public:
+   // common function which we want to reuse. In here copy/paste is use to simulate this effect.
+   void common(){ std::cout &lt;&lt; "Common processing" &lt;&lt; std::endl; }
+  // Same specialization as for string
+   void print(){ std::cout &lt;&lt; "String  specialization" &lt;&lt; std::endl; }
+   int a; // Specific for wstring
+  };
+
+template&lt;&gt;
+ class A&lt;float &gt;
+  {
+   public:
+     // common function which we want to reuse. In here copy/paste is use to simulate this effect.
+     void common(){ std::cout &lt;&lt; "Common processing" &lt;&lt; std::endl; }
+     void print(){ std::cout &lt;&lt; "Rational specialization" &lt;&lt; std::endl; }
+     float a; // Specific for float
+  };
+
+template&lt;&gt;
+ class A&lt;double &gt;
+  {
+   public:
+   // common function which we want to reuse. In here copy/paste is use to simulate this effect.
+   void common(){ std::cout &lt;&lt; "Common processing" &lt;&lt; std::endl; }
+   // Same specialization as for float
+   void print(){ std::cout &lt;&lt; "Rational specialization" &lt;&lt; std::endl; }
+   float a; // Specific for double
+  };
+
+</pre></code>&mdash;<i>end example</i>]</blockquote>
+    </dd>
+      </dl>
+    <br><br>
+  <p class="NovaStranica"></p>
+  </dd>
+  <dt><div class="NaslovGlavni">III. Solution</div></dt>
+<dd>
+  <dl>
+   <dt  class="Naslovcic" >Proposal</dt>
+ <dd>
+
+     First take a look at  well known and established definitions.
+    <dl>
+      <dt>inheritance<dt>
+      <dd>TODO<dd>
+      <dt>base class<dt>
+      <dd>TODO<dd>
+      <dt>interface<dt>
+      <dd>TODO<dd>
+      <dt>member function<dt>
+      <dd>TODO<dd>
+      <dt>member data<dt>
+      <dd>TODO<dd>
+    </dl>
+
+
+
+    Terms like 'base class', 'inheritance' are already taken and overloading them with new meanings will create mess.<br>
+    To avoid this mess new terms and definitions must be used. Implementation of this idea generally can be very complicate.
+    Establishing new definitions is simply must.
+
+    <dl>
+      <dt>Model<dt>
+      <dd>Class which interface will be reused.<dd>
+      <dt>Reuse<dt>
+      <dd>Completely take all ctors/dtors, function(s), member, base class and other properties of model class. Even that this looks like inheritance it is not. <dd>
+      <dt>Reuser<dt>
+      <dd>class who reuse interface of <i>model</i> class<dd>
+    </dl>
+
+
+    Process/flow of reusing:
+    <ol>
+      <li>if not concretized, concretize model class. If model class is default do not perform this action.
+      <li>Generate new interface.
+      <li>First parameter of reuser correspond to first parameter of model, same for second and others.
+      <li>Modify existing interface can be done by performing next steps in preferred order.
+        <ul>
+          <li> Remove existing member, function and base class.
+          <li> Add member, function and base class.
+        </ul>
+    </ol>
+
+
+<dl>
+    <dt>Definition of classes that will be used in examples<dt/>
+    <dd>
+[<i>Code</i>:<code><pre class="TextCode">
+template&lt; &gt;
+ class B&lt; std::string &gt; = B&lt; int &gt;
+ : public F //!&lt; OK.
+  {
+   void print(){ std::cout &lt;&lt; "String reuse int" &lt;&lt; std::endl; }
+  };
+
+ class B&lt; std::string &gt; = B&lt; int &gt;
+ : public O&lt; std::string &gt; // Error O&lt; std::string &gt; is already part of interface
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+template&lt; &gt;
+ class B&lt; std::string &gt; = B&lt; int &gt;
+ : public O&lt; int &gt; // OK O&lt; int &gt; is not part of interface. O&lt; std::string&gt; is part of the interface.
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+</pre></code>&mdash;<i>end code</i>]
+
+</dd>
+    <dt>Basic operation<dt/>
+    <dd>
+[<i>Example</i>:<code><pre class="TextCode">
+// Primary definition of template class.
+template&lt; typename T &gt;
+ class A
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+   int i;
+   float f;
+  };
+
+template&lt; &gt;
+ class A&lt; std::wstring &gt; = A&lt; std::string &gt; // At this point A&lt; std::string &gt; will be concretized
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+   float f;
+  };
+
+template&lt; typename T &gt;
+ class X
+  {
+   void print(){ std::cout &lt;&lt; "X" &lt;&lt; std::endl; }
+  };
+
+template&lt; typename T &gt;
+ class O: public X&lt; T &gt;
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+template&lt; typename T &gt;
+ class B : public O&lt; T &gt;
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+  class F{}; //!< Some class
+</pre></code>&mdash;<i>end example</i>]
+    </dd>
+
+
+    <dt>Remove base class:<dt/>
+    <dd>
+    [<i>Example</i>:<code><pre class="TextCode">
+template&lt; &gt;
+ class B&lt; std::string &gt; = B&lt; int &gt;
+ : delete  B&lt; int &gt;::O&lt; std::string &gt; // Visibility is irrelevant. Scope must be model.
+ , protected O&lt; std::string &gt; // At this point O&lt; std::string &gt; is not part of interface
+  {
+  };
+
+template&lt; &gt;
+ class B&lt; std::string &gt; = B&lt; int &gt;
+ : delete B&lt; int &gt;::O&lt; std::string &gt; // OK. Visibility is irrelevant. Scope must be model.
+ , protected O&lt; std::string &gt;              // OK.  Resurrection. At this point O&lt; std::string &gt; not considered as a part of model's interface.
+ , delete B&lt; int &gt;::O&lt; std::string &gt; // ERROR: No you can not do this twice.O&lt; std::string &gt; was removed from model's interface and can not be injected back.
+ , delete B&lt; int &gt;::X&lt; std::string &gt; // ERROR: X&lt; <i>_what_ever_</i> &gt; is not direct base class of model.
+  {
+  };
+</pre></code>&mdash;<i>end example</i>]
+  </dd>
+    <dt>Member manipulation:<dt/>
+    <dd>
+    [<i>Example</i>:<code><pre class="TextCode">
+template&lt; &gt;
+ class B&lt; std::string &gt; = B&lt; int &gt;
+  {
+   delete int i;                 // Error: Scope must be noted. Scope is model not reuser!!!
+   delete int B&lt; int &gt;::i; // OK. Scope noted and it is model.
+   delete int B&lt; int &gt;::i; // Error: Can not repeat deletion. Already deleted from model's interface. Class B&lt; int &gt; still have 'int i'.
+
+   protected:
+    double i; // Defined as different type and different visibility.
+  };
+
+template&lt; &gt;
+ class B&lt; std::string &gt;  = B&lt; int &gt;
+  {
+   delete int B&lt; int &gt;::i; // OK. Remove
+   int i;                  // OK. Not exists due to previous line. This is construction can be called resurrection.
+   delete int B&lt; int &gt;::i; // Error: Can not repeat deletion.
+  };
+
+  </pre></code>&mdash;<i>end example</i>]
+
+    </dd>
+    <dt>Using </i>defualt</i></dt>
+    <dd>
+[<i>Example</i>:<code><pre class="TextCode">
+// In case of (partial)specialization thats narrow specialization sometimes it is not possible to put some concrete type. So keyword <i>default</i> is used at that place.
+// Due to usage of default class template specialization must be defined before this definition.
+template&lt; &gt;
+ class A&lt; int &gt; = A&lt; default &gt; // Use interface of primary template definition.
+  {
+   void print(){ std::cout &lt;&lt; "Primary template" &lt;&lt; std::endl; }
+  };
+
+template&lt; typename T, template&lt; typename S &gt; &gt;
+class D
+ {/*...*/};
+
+template&lt; typename T &gt;
+ class D&lt; T, int &gt; = D&lt; T, default &gt; //! This model is equivalent with primary template, it is better to use D&lt; default, default &gt;
+  {/*...*/};
+
+template&lt; typename T &gt;
+ class D&lt; float, T &gt; //! Some partial specialization
+  {/*...*/};
+
+
+template&lt; typename T &gt;
+ class D&lt; T, int &gt; = D&lt; std::string, default &gt; //! ERROR: class was not partialy specialized for std::string and unknown type
+  {/*...*/};
+
+template&lt; typename T &gt;
+ class D&lt; T, char* &gt; = D&lt; float, default &gt; //! OK:  D&lt; float, default &gt; has definition.
+  {/*...*/};
+
+</pre></code>&mdash;<i>end example</i>]
+
+    </dd>
+<dl/>
+
+<p class="NovaStranica"></p>
+ </dd>
+   <dt><div class="NaslovGlavni">IV. Summary</div></dt>
+   <dd>
+      <ul>
+       <li>Inspired by N3596.</li>
+       <li>Efficient reuse of existing code.</li>
+       <li>Strict and clear definition of class who reuse interface .</li>
+       <li> This proposal vs. N3596.<br>
+            TODO
+       </li>
+   </ul>
+    <dl>
+    </dl>
+   </dd>
+ </dd>
+
+   <dt><div class="NaslovGlavni">V. Impact On the Standard</div></dt>
+   <dd>
+     <dl>
+       <dt> <div class="NaslovPod ">Core</div> </dt>
+       <dd>No effect.<br>
+           No new keywords. <br>
+           No new tokens. <br>
+           No changes to old syntax. <br>
+           Pure extension. <br>
+           Backward compatible.
+       </dd>
+       <dt><div class="NaslovPod ">Library</div></dt>
+       <dd>No effect.<br> No new class.<br> No new functions. </dd>
+       <dt><div class="NaslovPod ">Existing code.</div></dt>
+       <dd>No effect.<br>
+     </dl>
+   </dd>
+  </dl>
+  <hr shade width="100%" align="center">
+ </body>
+</html>
+
+
+
+
+
+

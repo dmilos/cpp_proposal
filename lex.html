@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+    <title>Lex</title>
+</head>
+<body>
+<pre>
+    Motivation
+    1 . regex should stay regex
+    2 . A Bit of Theory
+     - https://en.wikipedia.org/wiki/Chomsky_hierarchy
+    3. A bit of history
+    - https://en.wikipedia.org/wiki/Lex_%28software%29
+
+
+    Example:
+    typedef  std::lex&lt;int, char&gt; lex_t;
+    lex_t l;
+
+    l.token( r1, []( lex_t::match_type const& )->lex_t::token_type{ return 0; });
+    l.token( r2, []( lex_t::match_type const& )->lex_t::token_type{ return 1; });
+    l.compile();
+
+    std::ifstream ifs("test1.txt")
+    l.start();
+    while( ifs.eof() )
+    {
+        l.eat( ifs.get() );
+    }
+    l.done(); //! No more input. Clear internal state
+
+    std::ifstream ifs("test2.txt")
+    while( ifs.eof() )
+    {
+        l.eat( ifs.get() );
+    }
+    l.done(); //! No more input. Clear internal state
+</pre>
+
+
+</body>
+</html>
