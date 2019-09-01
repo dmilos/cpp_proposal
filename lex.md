@@ -5,6 +5,7 @@ Dejan D.M. Milosavljevic
 (dmilos at gmail dot com)
 
 Table of Contents.
+==================
   * I. Introduction
   * II. Motivation and Scope
   * III. Solutions
@@ -13,14 +14,20 @@ Table of Contents.
   * VI. References
 
 I. Introduction
-Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed. In here will be presented one possible implementation of lex.
+===============
+  Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed. In here will be presented one possible implementation of lex.
+
 II. Motivation and Scope
-There is a trend to add more features to existing regular expression.
+========================
+  There is a trend to add more features to existing regular expression. \
 Main reason for this i that regular expression can ( and must ) be implemented only by using finite state machines.
 And there should be guarantee that implementation use finite state machines.
 With this it is possible to guarantee time and complexity of regex execution( if not ).
 See: Chomsky_hierarchy.
+
 III. Solutions
+===============
+
 Add lex.
 
     Code sample:
@@ -76,20 +83,29 @@ Add lex.
        };
 
 IV. Summary of options
+=====================
 name.
-TODO.
-lambda-have.
-TODO.
+ TODO.
+ lambda-have.
+ TODO.
+ 
 IV. Design Decisions
+=====================
+
   * TODO.
+  
 V. Impact On the Standard
-Core
-None. This is library level.
-Library
-None. This is new feature.
-Existing code.
-None. New class will be under std namespace.
+===
+ Core
+   None. This is library level.
+  Library
+   None. This is new feature.
+ Existing code.
+  None. New class will be under std namespace.
+  
 VI. Links
-Core
-2 . Chomsky_hierarchy - https://en.wikipedia.org/wiki/Chomsky_hierarchy 3. A bit of history - https://en.wikipedia.org/wiki/Lex_%28software%29
+=========
+
+ Core
+    # . Chomsky_hierarchy - https://en.wikipedia.org/wiki/Chomsky_hierarchy 3. A bit of history - https://en.wikipedia.org/wiki/Lex_%28software%29
 ------------------------------------
