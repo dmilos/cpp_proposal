@@ -20,35 +20,37 @@ Dejan D.M. Milosavljevic
 
 # II. Motivation and Scope
   There is a trend to add more features to existing regular expression. \
-Main reason for this i that regular expression can ( and must ) be implemented only by using finite state machines.
+Main reason for this i that regular expression can ( and must ) be implemented only by using finite state machines. This addition will prevent need for adding more features in to regex and flexibility por parser creators. 
+
 And there should be guarantee that implementation use finite state machines.
 With this it is possible to guarantee time and complexity of regex execution( if not ).
-See: Chomsky_hierarchy.
+See: [Chomsky hierarchy](https://en.wikipedia.org/wiki/Chomsky_hierarchy ).
 
 # III. Solutions
   ## 1. Description
-    TODO
+    One class with name lex ( [name:lex|flex|Lex] ) which handle  
   
   ## 2. Class
 ```c++
     template
-      class lex //[name:lex|flex|Lex]
+      class lex
        {
         typedef character_name char_type;
         typedef std::size_t size_type;
 
         typedef std::regex regex_type;
         typedef --TODO-- match_type;
-        typedef std::function action_type; //!
+        
+        typedef std::function action_type;
          iterator_name eat( iterator_name const& begin iterator_name const& end ); //! processing sequence, return last unprocessed or equal to end.
-        void flush(); No more input. Finish parsing. Also clear internal state, same as restart
+        void flush(); //No more input. Finish parsing. Also clear internal state, also call restart().
 
-        // eqial to size() - waiting for more character.
-        // not equal to size() - have complete token, last eaten character is not part of parsed token
-        size_type token(); //[lambda-have:(false)],
+        //! eqial to size() - waiting for more character.
+        //! not equal to size() - have complete token, last eaten character is not part of parsed token
+        size_type token(); //!< [lambda-have:(false)],
 
-        bool good()const; //! No push/remove performed after compile
-        bool restart(); //! clear internal parse state
+        bool good()const; //!< No push/remove performed after compile
+        bool restart(); //!< clear internal parse state
        };
 ```
   ## 3. Examples
@@ -106,10 +108,10 @@ See: Chomsky_hierarchy.
 ```
 
 # IV. Summary of options
-name.
- TODO.
+ name.
+  TODO.
  lambda-have.
- TODO.
+  TODO.
  
 # IV. Design Decisions
   * TODO.
@@ -123,7 +125,5 @@ name.
   None. New class will be under std namespace.
   
 # VI. Links
- Core
-   # [Chomsky_hierarchy](https://en.wikipedia.org/wiki/Chomsky_hierarchy )
-   # [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
-    
+   1. [Chomsky hierarchy](https://en.wikipedia.org/wiki/Chomsky_hierarchy )
+   2. [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
