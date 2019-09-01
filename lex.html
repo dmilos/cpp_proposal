@@ -99,7 +99,7 @@ table {
 </head>
 <body>
 
-		<h1 align="center" > <div class="NaslovStranice">NAmed Parameters</div> </h1>
+		<h1 align="center" > <div class="NaslovStranice">LEX</div> </h1>
 		<table border="0" width="100%">
 			<tr>
 				<td width="100%">&nbsp;</td>
@@ -150,61 +150,103 @@ table {
 				Add lex.<br>
 
 <pre>
-                Code sample:
-    typedef  std::lex&lt;int, char&gt; lex_t;
+    Code sample:
+    typedef  std::lex&lt;int &gt; lex_t;
     lex_t l;
 
-    l.token( 0, r1, []( lex_t::match_type const& mt )->void{  });
-    l.token( 1, r2, []( lex_t::match_type const& mt )->void{  });
+    l.token( std::regex("[0-9]+"), []( lex_t::match_type const& mt )->void{ std::cout << "number"; });
+    l.token( std::regex("\n"),     []( lex_t::match_type const& mt )->void{ std::cout << "new-line"; });
+    l.token( std::regex(","),      []( lex_t::match_type const& mt )->void{ std::cout << "separator"; });
     l.compile();
 
-    std::ifstream ifs("test1.txt")
-    l.reset();
-    while( ifs.eof() )
-    {
-        l.eat( ifs.get() );
-    }
-    l.done(); //! No more input. Clear internal state
-
+    //Simpliest variant. Condition: [lambda-have:(true)]
     std::ifstream ifs("test2.txt")
+    l.eat( std::istream_iterator<char>( ifs ), std::istream_iterator<char>() );
+    // No need for reset or flush. everything is automatic inside eat( begin, end )
+    
+    //Feed lex one by one character. Condition: [lambda-have:(true)]
+    std::ifstream ifs("test1.txt")
     while( ifs.eof() )
     {
         l.eat( ifs.get() );
     }
-    l.done(); //! No more input. Clear internal state
+    l.flush(); // No more input. Call appropriate lambda if unique exists. Clear internal state. 
+
+    // [lambda-have:(false)] Most complicated variant, Probably the fastest comparing to [lambda-have:(true)]
+    do
+    {
+        if( true == ifs.eof() )
+            l.flush();
+        else
+            if( false == l.eat( ifs.get() ) )
+                break;
+
+        lex_t::size_type  t = l.token();
+        if( l.size() == l.token() )
+            switch( l.token() )
+            {
+                case( 0 ): std::cout << "number";    break;
+                case( 1 ): std::cout << "new-line";  break;
+                case( 2 ): std::cout << "separator"; break;
+            }
+    }while( false == ifs.eof() )
+
+
 </pre>
 
 <pre>
 
 
-    template< character_name >
-      class lex
+    template< typename character_name >
+      class lex //[name:lex|flex|Lex]
        {
-        typedef regex_type;
-        typedef action_type;
-        typedef char_type;
-        typedef size_type;
+        typedef character_name char_type;
+        typedef std::size_t size_type;
+
+        typedef std::regex<character_name> regex_type;
+        typedef --TODO-- match_type;
+        typedef std::function< void( match_type const&) > action_type; //!< [lambda-have:(true)]
+        typedef --implementation-defined-- iterator_type;
 
         // Container things
-        void clear(); //! Clear everything
+        void clear(); //! Clear everything including parse state, good will return false, size() will return 0.
         size_type size()const;
-        iterator begin();
+        iterator_type begin();
         iterator_const cbegin()const;
-        iterator end();
+        iterator_type end();
         iterator_const cend()const;
-        void erase( iterator );
 
-        bool push( regex_type, action_type );
+        void erase( iterator_type );
+
+        size_type push( regex_type ); //!< [lambda-have:(false)]//!< return value is allways equal to prevously retrieved size()
+        size_type push( regex_type, action_type ); //!< [push-lambda-return:bool|size_t] [lambda-have:(true)] //!< return value is allways equal to prevously retrieved size().
 
         // the logic.
         bool compile();
-        bool eat( char_type ); //! processing one character
+
+        bool eat( char_type ); //! processing one character. true - Parsing is OK, waiting for another. false - can not process given character. 
+        template< typename iterator_name >
+         iterator_name eat( iterator_name const& begin iterator_name const& end ); //! processing sequence, return last unprocessed or equal to end.
+        void flush(); No more input. Finish parsing. Also clear internal state, same as restart
+
+        // eqial to size() - waiting for more character.
+        // not equal to size() - have complete token, last eaten character is not part of parsed token
+        size_type token(); //[lambda-have:(false)],
+
         bool good()const; //! No push/remove performed after compile
         bool restart(); //! clear internal parse state
        };
 
 </pre>
 
+			</dd>
+			<dt><div class="NaslovGlavni">IV. Summary of options</div></dt>
+			<dd>
+				<dl>
+					<dt>name.</dt><dd>TODO.</dd>
+					<dt>lambda-have.</dt><dd>TODO.</dd>
+				</dl>
+			</dd>
 
 
 			</dd>
@@ -220,7 +262,7 @@ table {
 				<dl>
 					<dt> <div class="NaslovPod ">Core</div> </dt>
 					<dd>
-						None. This is library issue.
+						None. This is library level.
 					</dd>
 					<dt><div class="NaslovPod ">Library</div></dt>
 					<dd>None. This is new feature.</dd>
