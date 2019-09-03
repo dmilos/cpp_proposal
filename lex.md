@@ -14,7 +14,7 @@ Dejan D.M. Milosavljevic
     * 2 Class
     * 2.1 Definition
     * 2.1 Conditions
-   * 3 Examples
+    * 3 Examples
   * IV. Design Decisions
   * V. Impact On the Standard
   * VI. References
@@ -46,7 +46,7 @@ Dejan D.M. Milosavljevic
   ## 2. Class
    The class it self.
 
-  ### A. Definition
+  ### 2.1 Definition
    Class definitions.
 
 ```c++
@@ -73,55 +73,53 @@ Dejan D.M. Milosavljevic
        };
 ```
 
-  ### A. Conditions
-
+  ### 2.2. Conditions
     `size_t push( regex_type const& );`
       - Add regular expression in internal list.
       - size() will increase for one
       - return value is equal to `size() -1`.
       - if some eaten sequence match this regular expression `token` will return number retuned by `push`
 
-    `size_type size()const;
+    `size_type size()const;`
        return number of pushed regular expression
 
-    `void clear();
+    `void clear();`
        - remove all regex from internal lists
        - consumed() will return -1
        - size() will return 0
        - token() will return 0
        - eat() will return `false`
 
-    `bool compile();
+    `bool compile();`
      - prepare internal data so the parsing can begin
      - `consumed()` will return 0.
 
-    `bool consumed()const;
+    `bool consumed()const;`
      - -1 - can not parse, 
      -  0 - ready to parse
      -  + number - number of parsed characters.
 
-    `bool restart();
+    `bool restart();`
      - Clear internal consumed
      - false if `consumed` return -1;
      - true if `consumed` zero or positive number;
      - `consumed` will return 0
 
-    `bool eat( char_type const& c ); {options:[eat-one-name:eat|parse]}
+    `bool eat( char_type const& c );` {options:[eat-one-name:eat|parse]}
     // true -character is processed, 
     // false - character rejected.
 
-    `void flush();
+    `void flush();`
       - Force internal state that is no more input and set internal state so token may return value different than `size()`
 
     `size_type token();`
     //! equal to size() - waiting for more character.
     //! not equal to size() - have complete token, last eaten character is not part of parsed token
 
-```
-
-## 3. Examples
-
-### Make instance:
+  ### 3. Examples
+  
+  #### Make instance:
+    
 Just make one instance of `lex` for `char` type.
 ```c++
     typedef  std::lex<char> clex_t;
@@ -131,7 +129,7 @@ Just make one instance of `lex` for `char` type.
     yacc_t y;
 ```
 
-### Fill with information
+#### Fill with information
 Parse stream that contains lines of comma separated numbers.
 
 ``` c++
@@ -141,7 +139,7 @@ Parse stream that contains lines of comma separated numbers.
     l.compile();
 ```
 
-### Parsing
+#### Parsing
    In this version `lex` does not have ability to call lambda.it is up to user to take some action when token is parsed.
    Send character one by one to `lex`. When lex have token function `lex:token` will return number different than `lex::size()`.
 ```c++
