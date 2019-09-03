@@ -68,58 +68,74 @@ Dejan D.M. Milosavljevic
         bool restart();
 
         bool eat( char_type const& c ); //!< {options:[eat-one-name:eat|parse]}
-        void flush();
+        bool flush();
         size_type token();
        };
 ```
 
   ### 2.2. Conditions
     `size_t push( regex_type const& );`
-      - Add regular expression in internal list.
-      - size() will increase for one
-      - return value is equal to `size() -1`.
-      - if some eaten sequence match this regular expression `token` will return number retuned by `push`
+      - pre-con: consumed() should return 0;
+       return number same as size()
+      - post-con: Description: Add regular expression in internal list
+      - post-con: size() will increase for one
+      - post-con: return value is equal to `size() -1`.
+      - post-con: if some eaten sequence match this regular expression `token` will return number returned by `push`
 
     `size_type size()const;`
-       return number of pushed regular expression
+       - Description: return number of pushed regular expression
+       - pre-con: Does not matter.
+       - post-con: No change
 
     `void clear();`
-       - remove all regex from internal lists
-       - consumed() will return -1
-       - size() will return 0
-       - token() will return 0
-       - eat() will return `false`
+       - Description: remove all regex from internal lists
+       - pre-con: Does not matter.
+       - post-con: consumed() will return -1
+       - post-con: size() will return 0
+       - post-con: token() will return 0
+       - post-con: eat() will return `false`
 
     `bool compile();`
-     - prepare internal data so the parsing can begin
+     - Description: prepare internal data so the parsing can begin
+     - pre-con:
      - `consumed()` will return 0.
 
-    `bool consumed()const;`
-     - -1 - can not parse, 
+    `int consumed()const;`
+     - Description: return number of successfully processed characters.
+     - pre-con: nothing
+     - post-con: no effect
+     - -1 - can not parse,
      -  0 - ready to parse
      -  + number - number of parsed characters.
 
     `bool restart();`
-     - Clear internal consumed
-     - false if `consumed` return -1;
-     - true if `consumed` zero or positive number;
-     - `consumed` will return 0
+     - Description: Clear internal state and prepare for new parsing.
+     - pre-con: `consumed()` is negative ; return false;
+     - pre-con: `consumed()` is zero or positive . return true.
+       - post-con: `consumed()` return 0;
 
     `bool eat( char_type const& c );` {options:[eat-one-name:eat|parse]}
-    // true -character is processed, 
-    // false - character rejected.
+      -  return true - character is properly processed,
+      -  pre-con: `consumed()` is zero or positive . false -  return character rejected. Internal state is unchanged. Can proceed with new character.
+      -  pre-con: `consumed()` is negative. return false.
 
-    `void flush();`
-      - Force internal state that is no more input and set internal state so token may return value different than `size()`
+    `bool flush();`
+      - Description: Force internal state that is no more input and set internal state so token may return value different than `size()`
+      -  pre-con: `consumed()` is zero or positive.
+      -- post-con: return true;
+      -- post-con: `consumed()` is zero
+      -- post-con: `token()` may return value less than `size()`.
+      - pre-con:
+      -- retun false
 
     `size_type token();`
     //! equal to size() - waiting for more character.
     //! not equal to size() - have complete token, last eaten character is not part of parsed token
 
   ### 3. Examples
-  
+
   #### Make instance:
-    
+
 Just make one instance of `lex` for `char` type.
 ```c++
     typedef  std::lex<char> clex_t;
