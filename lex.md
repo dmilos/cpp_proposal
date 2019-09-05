@@ -73,7 +73,7 @@ Dejan D.M. Milosavljevic
         size_type token();
        };
 ```
-  ##### 2.1.A.b. Conditions
+  ##### 2.1.A.b Conditions
 
     `size_t push( regex_type const& );`
        - description: Add regular expression in internal list
@@ -155,6 +155,55 @@ Dejan D.M. Milosavljevic
       - effect:  have complete token, last eaten character is not part of parsed token
       - effect: none
 
+  ##### 2.1.A.b Examples
+
+  ###### Make instance:
+
+Just make one instance of `lex` for `char` type.
+```c++
+    typedef  std::lex_basic<char> clex_t;
+    clex_t l;
+
+    //!< Important in manner that `lex` should be able to easily cooperate with classes that is able to handle Type-2 or Type-3 grammars.
+    yacc_t y;
+```
+
+###### Fill with information
+Parse stream that contains lines of comma separated numbers.
+
+``` c++
+    l.push( std::regex("[0-9]+") );
+    l.push( std::regex("\n")     );
+    l.push( std::regex(",")      );
+    l.compile();
+```
+
+###### Parsing
+   In this version `lex` does not have ability to call lambda.it is up to user to take some action when token is parsed.
+   Send character one by one to `lex`. When lex have token function `lex:token` will return number different than `lex::size()`.
+```c++
+    do
+    {
+        if( true == ifs.eof() )
+            l.flush();
+        else
+            if( false == l.eat( ifs.get() ) )
+                break;
+
+        lex_t::size_type t = l.token();
+        if( l.size() == l.token() )
+        {
+            // Shorter variant but no diagnostics: `y.accept( l.token() );`
+            switch( l.token() )
+            {
+                case( 0 ): std::cout << "number";    y.accept(0); break;
+                case( 1 ): std::cout << "new-line";  y.accept(1); break;
+                case( 2 ): std::cout << "separator"; y.accept(2); break;
+            }
+       }
+    }while( false == ifs.eof() )
+```
+
 
   #### 2.1.B Lambda
 
@@ -168,7 +217,7 @@ Dejan D.M. Milosavljevic
         typedef std::size_t size_type;
 
         typedef std::regex<character_type> regex_type;
-        typedef std::basic_string< charT, traits, Alloc > match_type; //{options:[match_type:string|match_results]}
+        typedef std::basic_string< charT, traits, Alloc > match_type; //{options:[match_type:string|match_results|...]}
 
         typedef std::function< void( match_type const& )  > action_type;
 
@@ -196,55 +245,37 @@ Dejan D.M. Milosavljevic
   #### 2.1.B.b Conditions
    TODO
 
-
-  ### 3. Examples
-
-  #### Make instance:
+  #### 2.1.B.c Examples
+  ###### Make instance:
 
 Just make one instance of `lex` for `char` type.
 ```c++
-    typedef  std::lex<char> clex_t;
+    typedef  std::lex_lambda<char> clex_t;
     clex_t l;
 
-    //!< Important in manner that `lex` should be able to easily cooperate with classes that is able to handle Type-2 or Type-3 grammars.
     yacc_t y;
 ```
 
-#### Fill with information
+###### Fill with information
 Parse stream that contains lines of comma separated numbers.
 
 ``` c++
-    l.push( std::regex("[0-9]+") );
-    l.push( std::regex("\n")     );
-    l.push( std::regex(",")      );
+    l.push( std::regex("[0-9]+"), [&y](clex_t::match_type const& m)->void{ y.eat(0); } );
+    l.push( std::regex("\n")    , [&y](clex_t::match_type const& m)->void{ y.eat(1); } );
+    l.push( std::regex(",")     , [&y](clex_t::match_type const& m)->void{ y.eat(2); } );
     l.compile();
 ```
+###### Parsing
+   Do everything automatically
+      ```c++
+        std::ifstream ifs( "some-file.txt" );
 
-#### Parsing
-   In this version `lex` does not have ability to call lambda.it is up to user to take some action when token is parsed.
-   Send character one by one to `lex`. When lex have token function `lex:token` will return number different than `lex::size()`.
-```c++
-    do
-    {
-        if( true == ifs.eof() )
-            l.flush();
-        else
-            if( false == l.eat( ifs.get() ) )
-                break;
+         l.eat( std::istream_iterator( ifs ), std::istream_iterator() );
 
-        lex_t::size_type t = l.token();
-        if( l.size() == l.token() )
-        {
-            // Shorter variant but no diagnostics: `y.accept( l.token() );`
-            switch( l.token() )
-            {
-                case( 0 ): std::cout << "number";    y.accept(0); break;
-                case( 1 ): std::cout << "new-line";  y.accept(1); break;
-                case( 2 ): std::cout << "separator"; y.accept(2); break;
-            }
-       }
-    }while( false == ifs.eof() )
-```
+          // No need for reset or flush. Everything is automatic inside eat( begin, end );
+
+      ```
+
 
 # IV. Summary of options
   * class-name.
@@ -267,9 +298,11 @@ Parse stream that contains lines of comma separated numbers.
   * Core
 
     None. This is library level.
+
   * Library
 
    None. This is new feature.
+
   * Existing code
 
     None. New class will be under `std` namespace.
