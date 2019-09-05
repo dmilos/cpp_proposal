@@ -41,24 +41,25 @@ Dejan D.M. Milosavljevic
 # III. Solutions
   ## 1. Description
     Add well know Lex. See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
-    Implementation will have only one class ( [class-name:lex|flex|Lex] ).
 
   ## 2. Class
-   The class it self.
+   The classes.
 
   ### 2.1 Definition
-   Class definitions.
+
+  #### 2.1.A Simple
+  ##### 2.1.A.a definition
 
 ```c++
     template < class charT >
-      class lex
+      class lex_basic  //!< [class-name:lex|flex|Lex|lex_basic]
        {
         typedef charT char_type;
         typedef std::size_t size_type;
 
         typedef std::regex<character_type> regex_type;
 
-        void push( regex_type const& );
+        size_type push( regex_type const& );
         size_type size()const;
 
         void clear();
@@ -72,65 +73,129 @@ Dejan D.M. Milosavljevic
         size_type token();
        };
 ```
+  ##### 2.1.A.b. Conditions
 
-  ### 2.2. Conditions
     `size_t push( regex_type const& );`
-      - pre-con: consumed() should return 0;
-       return number same as size()
-      - post-con: Description: Add regular expression in internal list
-      - post-con: size() will increase for one
-      - post-con: return value is equal to `size() -1`.
-      - post-con: if some eaten sequence match this regular expression `token` will return number returned by `push`
+       - description: Add regular expression in internal list
+       - complexity: same as `vector<regex_type>::push_back`
+      - pre-con: consumed() return non-zero;
+        - effect: return number same as size()
+      - pre-con: consumed() return zero;
+        - effect: size() will increase for one
+        - effect: return value is equal to `size() -1`.
+        - effect: if some eaten sequence match this regular expression `token` will return number returned by `push`
 
     `size_type size()const;`
-       - Description: return number of pushed regular expression
+       - description: return number of pushed regular expression
+      - complexity: same as vector<regex_type>::size
        - pre-con: Does not matter.
        - post-con: No change
 
     `void clear();`
-       - Description: remove all regex from internal lists
+       - description: remove all regex from internal lists
+       - complexity: implementation defined
        - pre-con: Does not matter.
-       - post-con: consumed() will return -1
-       - post-con: size() will return 0
-       - post-con: token() will return 0
-       - post-con: eat() will return `false`
+       - effect: consumed() will return -1
+       - effect: size() will return 0
+       - effect: token() will return 0
+       - effect: eat() will return `false`
 
     `bool compile();`
-     - Description: prepare internal data so the parsing can begin
-     - pre-con:
-     - `consumed()` will return 0.
+      - Description: prepare internal data so the parsing can begin
+       - complexity: implementation defined
+
+      - pre-con:
+        -- effect:
+      - post-con:
+        - effect: `consumed()` will return 0.
 
     `int consumed()const;`
      - Description: return number of successfully processed characters.
+      - complexity: constant
      - pre-con: nothing
      - post-con: no effect
-     - -1 - can not parse,
-     -  0 - ready to parse
-     -  + number - number of parsed characters.
+     - negative  - can not parse,
+     -  zero     - ready to parse
+     -  positive - number of parsed characters.
 
     `bool restart();`
      - Description: Clear internal state and prepare for new parsing.
-     - pre-con: `consumed()` is negative ; return false;
+      - complexity: constant
+     - pre-con: `consumed()` is negative ;
+      - effect: return false;
      - pre-con: `consumed()` is zero or positive . return true.
-       - post-con: `consumed()` return 0;
+       - effect: `consumed()` return 0;
 
     `bool eat( char_type const& c );` {options:[eat-one-name:eat|parse]}
+      - Description: Process given character by changing internal state.
+      - complexity: constant
       -  return true - character is properly processed,
-      -  pre-con: `consumed()` is zero or positive . false -  return character rejected. Internal state is unchanged. Can proceed with new character.
-      -  pre-con: `consumed()` is negative. return false.
+      -  pre-con: `consumed()` is zero or positive .
+       - effect: false -  return character rejected. Internal state is unchanged. Can proceed with new character.
+      -  pre-con: `consumed()` is negative.
+       - effect: return false.
 
     `bool flush();`
       - Description: Force internal state that is no more input and set internal state so token may return value different than `size()`
+      - complexity: constant
       -  pre-con: `consumed()` is zero or positive.
       -- post-con: return true;
       -- post-con: `consumed()` is zero
       -- post-con: `token()` may return value less than `size()`.
       - pre-con:
-      -- retun false
+      -- return false
 
-    `size_type token();`
-    //! equal to size() - waiting for more character.
-    //! not equal to size() - have complete token, last eaten character is not part of parsed token
+    `size_type token();` TODO, size() !=0 etc
+      - Description: return discovered token
+      - complexity: constant
+      - pre-con:- equal to size()
+      - note: waiting for more character.
+      - effect: none
+      - pre-con: not equal to size()
+      - effect:  have complete token, last eaten character is not part of parsed token
+      - effect: none
+
+
+  #### 2.1.B Lambda
+
+  #### 2.1.B.a definition
+   Utilize ability of lambda
+```c++
+    template < class charT >
+      class lex_lambda
+       {
+        typedef charT char_type;
+        typedef std::size_t size_type;
+
+        typedef std::regex<character_type> regex_type;
+        typedef std::basic_string< charT, traits, Alloc > match_type; //{options:[match_type:string|match_results]}
+
+        typedef std::function< void( match_type const& )  > action_type;
+
+        void push( regex_type const& );
+        void push( regex_type const&, action_type const&);
+
+        bool eat( char_type const& c );
+
+        template < typename iteratorT >
+         iterator_name eat( iteratorT const& begin iteratorT const& end );
+
+        void flush();
+
+        size_type token();
+
+        bool good()const;
+        bool restart();
+
+        protected:
+            lex_t m_lex; //!< exposition only
+       };
+
+```
+
+  #### 2.1.B.b Conditions
+   TODO
+
 
   ### 3. Examples
 
