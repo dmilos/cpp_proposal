@@ -75,7 +75,7 @@ Dejan D.M. Milosavljevic
 ```
   ##### 2.1.A.b Conditions
 
-    `size_t push( regex_type const& );`
+    `size_type push( regex_type const& )`
        - description: Add regular expression in internal list
        - complexity: same as `vector<regex_type>::push_back`
       - pre-con: consumed() return non-zero;
@@ -85,7 +85,7 @@ Dejan D.M. Milosavljevic
         - effect: return value is equal to `size() -1`.
         - effect: if some eaten sequence match this regular expression `token` will return number returned by `push`
 
-    `size_type size()const;`
+    `size_type size()const`
        - description: return number of pushed regular expression
       - complexity: same as vector<regex_type>::size
        - pre-con: Does not matter.
@@ -99,11 +99,11 @@ Dejan D.M. Milosavljevic
        - effect: size() will return 0
        - effect: token() will return 0
        - effect: eat() will return `false`
+       - effect: compile() will return `false`
 
     `bool compile();`
       - Description: prepare internal data so the parsing can begin
        - complexity: implementation defined
-
       - pre-con:
         -- effect:
       - post-con:
@@ -172,15 +172,19 @@ Just make one instance of `lex` for `char` type.
 Parse stream that contains lines of comma separated numbers.
 
 ``` c++
-    l.push( std::regex("[0-9]+") );
-    l.push( std::regex("\n")     );
-    l.push( std::regex(",")      );
+    l.push( clex_t::regex_type("[0-9]+") );
+    l.push( clex_t::regex_type("\n")     );
+    l.push( clex_t::regex_type(",")      );
     l.compile();
 ```
 
 ###### Parsing
    In this version `lex` does not have ability to call lambda.it is up to user to take some action when token is parsed.
    Send character one by one to `lex`. When lex have token function `lex:token` will return number different than `lex::size()`.
+   In here we will utilize
+     - `switch` is `faster` that `vector::operator[]` ( or I think :)
+     - call of lambda is expensive comparing to simple pass of one `size_t` to function.
+
 ```c++
     do
     {
@@ -208,42 +212,56 @@ Parse stream that contains lines of comma separated numbers.
   #### 2.1.B Lambda
 
   #### 2.1.B.a definition
-   Utilize ability of lambda
+   Lambda in the best.
+   Number of function is minimal as possible. No eat( char_type ), push( regex_type ). This will force programmer to decide speed or flexibility.
 ```c++
-    template < class charT >
+    template < class charT, class traits = regex_traits<charT>, class Alloc = allocator<charT> >
       class lex_lambda
        {
         typedef charT char_type;
         typedef std::size_t size_type;
+        typedef lex_basic<charT, traits > lex_basic_type;
+        typedef std::regex<character_type, traits> regex_type;
+        typedef std::basic_string< char_type, traits, Alloc > match_type; //{options:[match_type:string|match_results|...]}
 
-        typedef std::regex<character_type> regex_type;
-        typedef std::basic_string< charT, traits, Alloc > match_type; //{options:[match_type:string|match_results|...]}
+        typedef std::function< void( match_type const& ) > action_type;
 
-        typedef std::function< void( match_type const& )  > action_type;
-
-        void push( regex_type const& );
         void push( regex_type const&, action_type const&);
-
-        bool eat( char_type const& c );
+        void clear();
 
         template < typename iteratorT >
-         iterator_name eat( iteratorT const& begin iteratorT const& end );
+         iteratorT parse( iteratorT const& begin iteratorT const& end );
 
-        void flush();
-
-        size_type token();
-
-        bool good()const;
-        bool restart();
+        bool compile();
+        bool good()const{ return 0 != m_lex.consumed(); }
 
         protected:
-            lex_t m_lex; //!< exposition only
+          lex_basic_type m_lex; //!< exposition only
        };
 
 ```
 
   #### 2.1.B.b Conditions
-   TODO
+
+   - `void push( regex_type const&, action_type const&)`
+   -- description: associate lambda to given regex. Just push in to internal list.
+
+   - `iteratorT parse( iteratorT const& begin iteratorT const& end )`
+   - description: parse input stream and call appropriate lambda.
+    - `bool compile()`
+    - same as `lex_t::compile`
+    - `bool good()const;
+    - true - instance is readu to parse-name
+    - false - instance is not ready to parse. `compile` is not called or `push` is called before `compile`
+
+    `void clear();`
+       - description: remove all regex from internal lists. Allow instance to be reused.
+       - complexity: implementation defined
+       - pre-con: Does not matter.
+       - effect: good() will return false
+       - effect: compile() will return false
+       - effect: parse() will return begin
+
 
   #### 2.1.B.c Examples
   ###### Make instance:
@@ -268,11 +286,11 @@ Parse stream that contains lines of comma separated numbers.
 ###### Parsing
    Do everything automatically
       ```c++
-        std::ifstream ifs( "some-file.txt" );
+        std::ifstream ifs0( "some-file.txt" );
+         l.eat( std::istream_iterator( ifs0 ), std::istream_iterator() );
 
-         l.eat( std::istream_iterator( ifs ), std::istream_iterator() );
-
-          // No need for reset or flush. Everything is automatic inside eat( begin, end );
+        std::ifstream ifs1( "other-file.txt" );
+         l.eat( std::istream_iterator( ifs1 ), std::istream_iterator() );
 
       ```
 
@@ -292,7 +310,27 @@ Parse stream that contains lines of comma separated numbers.
   `lex` class is designed in manner that is possible to easy connect with `yacc`-like features.
 
   - No iteration or deleting of pushed regular expressions?
-    TODO
+    This will make this library more complicate. Focus is on parsing not on container maintenance. If desired this functionality can be easily added.
+    `lex_basic::push` already return number, `lex_basic::erase( size_t )` this is like opposite of iterator idea,
+    tendency is to erase regex associate to token and this will be forced explicitly true size_t.
+  - size_t vs. enum
+    Adding `enum` as custom token numbering will increase parameter list of `lex_lambda`.
+    Number of temple parameter is too large lex_lambda. If added to lex_basic this will have domino effect to lex_lambda.
+
+    Here is obvious benefit.
+    ```c++
+      enum CSVToken{ FIELD, COMMA, NEWL };
+      lex_basic<char,CSVToken > l1;
+
+      yacc<CVSToken> y1;
+
+      enum SpaceSVToken{ FIELD, SPACE, NEWL };
+      lex_basic<char,SpaceSVToken > l2;
+
+      yacc<SpaceSVToken> y2;
+
+      y1.eat( l2.token() ); //!< Error!!
+    ```
 
 # V. Impact On the Standard
   * Core
@@ -301,7 +339,7 @@ Parse stream that contains lines of comma separated numbers.
 
   * Library
 
-   None. This is new feature.
+    None. This is new feature.
 
   * Existing code
 
