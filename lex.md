@@ -5,28 +5,23 @@ Dejan D.M. Milosavljevic
 (dmilos at gmail dot com)
 
 # Table of Contents.
-  * I. Introduction
-  *  1  Form
-  *  2  Introduction
-  * II. Motivation
-  * III. Solutions
-    * 1 Description
-    * 2 Class
-    * 2.1 Definition
-    * 2.1 Conditions
-    * 3 Examples
-  * IV. Design Decisions
-  * V. Impact On the Standard
-  * VI. References
+
+   I. Introduction
+   II. Motivation
+   III. Solutions
+   IV. Summary of options
+   IV. Design Decisions
+   V. Impact On the Standard
+   VI. Links
 
 # I. Introduction
   1. Form
-    This document is designed in the form to so that reader can easily express their view by crossing given options.
-    Example: {option[lambda-have:true|false]} give option to have ( option: true ) lambdas not have ( option: false).
-    So the viewer at the end can express opinion like: [lambda-have:true], [class-name:lexical_parser], [ match_type:string], [eat-one-name:process]
+    This document is designed in the form to so that reader can easily express their view by choosiness given options.
+    Example: {options[lambda-have:true|false]} give option to have [options:true] lambdas not have [options:false].
+    So the viewer at the end can express opinion like:  [ match_type:string], [eat-one-name:process]
   2. About
     Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed.
-  In here will be presented one possible implementation.
+  In here it will be presented one possible implementation. Another benefit is speed of parsing too.
 
 # II. Motivation
   There is a trend to add more features to existing regular expression. Like Lookaheads or Inline Modifiers.
@@ -39,25 +34,26 @@ Dejan D.M. Milosavljevic
    - Harder to add new classes/function on the top of `regexp` e.g. `lex`
 
 # III. Solutions
-  ## 1. Description
+  ## III.1. Description
     Add well know Lex. See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
 
-  ## 2. Class
+  ## III.2. Classes
    The classes.
 
-  ### 2.1 Definition
+  ### III.2.1 Simple lex
 
-  #### 2.1.A Simple
-  ##### 2.1.A.a definition
+  #### III.2.1.A Simple
+
+  ##### III.2.1.A.a definition
 
 ```c++
-    template < class charT >
-      class lex_basic  //!< [class-name:lex|flex|Lex|lex_basic]
+    template < class charT, class traits = regex_traits<charT> >
+      class lex_simple  //!< {options:[lex_simple-name:lex|flex|Lex|lex_basic]}
        {
         typedef charT char_type;
         typedef std::size_t size_type;
 
-        typedef std::regex<character_type> regex_type;
+        typedef std::regex<charT, traits > regex_type;
 
         size_type push( regex_type const& );
         size_type size()const;
@@ -69,11 +65,11 @@ Dejan D.M. Milosavljevic
         bool restart();
 
         bool eat( char_type const& c ); //!< {options:[eat-one-name:eat|parse]}
-        bool flush();
         size_type token();
        };
 ```
-  ##### 2.1.A.b Conditions
+
+  ##### III.2.1.A.b Conditions
 
     `size_type push( regex_type const& )`
        - description: Add regular expression in internal list
@@ -87,36 +83,35 @@ Dejan D.M. Milosavljevic
 
     `size_type size()const`
        - description: return number of pushed regular expression
-      - complexity: same as vector<regex_type>::size
+       - complexity: same as vector<regex_type>::size
        - pre-con: Does not matter.
-       - post-con: No change
+       - effect: No change
 
     `void clear();`
        - description: remove all regex from internal lists
        - complexity: implementation defined
        - pre-con: Does not matter.
-       - effect: consumed() will return -1
-       - effect: size() will return 0
-       - effect: token() will return 0
-       - effect: eat() will return `false`
-       - effect: compile() will return `false`
+         - effect: consumed() will return -1
+         - effect: size() will return 0
+         - effect: token() will return 0
+         - effect: eat() will return `false`
+         - effect: compile() will return `false`
 
     `bool compile();`
       - Description: prepare internal data so the parsing can begin
        - complexity: implementation defined
       - pre-con:
-        -- effect:
-      - post-con:
+        -- effect: TODO
+      - pre-con: TODO
         - effect: `consumed()` will return 0.
 
     `int consumed()const;`
      - Description: return number of successfully processed characters.
       - complexity: constant
      - pre-con: nothing
-     - post-con: no effect
-     - negative  - can not parse,
-     -  zero     - ready to parse
-     -  positive - number of parsed characters.
+       - effect: return negative  - can not parse,
+       - effect: return  zero     - ready to parse
+       - effect: return  positive - number of parsed characters.
 
     `bool restart();`
      - Description: Clear internal state and prepare for new parsing.
@@ -126,49 +121,50 @@ Dejan D.M. Milosavljevic
      - pre-con: `consumed()` is zero or positive . return true.
        - effect: `consumed()` return 0;
 
-    `bool eat( char_type const& c );` {options:[eat-one-name:eat|parse]}
+    `bool eat( char_type const& c );`
       - Description: Process given character by changing internal state.
       - complexity: constant
-      -  return true - character is properly processed,
       -  pre-con: `consumed()` is zero or positive .
        - effect: false -  return character rejected. Internal state is unchanged. Can proceed with new character.
       -  pre-con: `consumed()` is negative.
        - effect: return false.
 
     `bool flush();`
-      - Description: Force internal state that is no more input and set internal state so token may return value different than `size()`
+      - Description: Force internal state that is no more input and set internal state so `token()` may return value different than `size()`
       - complexity: constant
       -  pre-con: `consumed()` is zero or positive.
-      -- post-con: return true;
-      -- post-con: `consumed()` is zero
-      -- post-con: `token()` may return value less than `size()`.
-      - pre-con:
-      -- return false
+        - effect: return true;
+        - effect: `consumed()` is zero
+        - effect: `token()` may return value less than `size()`.
+      - pre-con: `consumed()` is negative.
+        -effect: return false
 
-    `size_type token();` TODO, size() !=0 etc
-      - Description: return discovered token
+    `size_type token();`
+      - Description: return index of uniquely matched regex
       - complexity: constant
-      - pre-con:- equal to size()
-      - note: waiting for more character.
-      - effect: none
-      - pre-con: not equal to size()
-      - effect:  have complete token, last eaten character is not part of parsed token
-      - effect: none
+      -pre-con: `consumed()` is zero or positive
+        - effect: return value equal to `size()`
+          - note: waiting for more character.
+        - effect: return value is less than `size()`
+          - note: have unique sequence that match only one regular expression.
+          - note: waiting for more character.
+      - effect: `consumed()` is negative
+        - effect:  return `size()`
 
-  ##### 2.1.A.b Examples
+  ##### III.2.1.A.c Examples
 
-  ###### Make instance:
+  ###### III.2.1.A.c Make instance:
 
 Just make one instance of `lex` for `char` type.
 ```c++
-    typedef  std::lex_basic<char> clex_t;
+    typedef  std::lex_simple<char> clex_t;
     clex_t l;
 
     //!< Important in manner that `lex` should be able to easily cooperate with classes that is able to handle Type-2 or Type-3 grammars.
     yacc_t y;
 ```
 
-###### Fill with information
+###### III.2.1.A.b Fill with information
 Parse stream that contains lines of comma separated numbers.
 
 ``` c++
@@ -178,21 +174,21 @@ Parse stream that contains lines of comma separated numbers.
     l.compile();
 ```
 
-###### Parsing
-   In this version `lex` does not have ability to call lambda.it is up to user to take some action when token is parsed.
-   Send character one by one to `lex`. When lex have token function `lex:token` will return number different than `lex::size()`.
+###### III.2.1.A.b Parsing
+   In this version `lex` does not have ability to call lambda. It is up to user to take some action when token is parsed.
+   Send character one by one to `lex`. When lex discover unique token function `lex:token` will return number different than `lex::size()`.
    In here we will utilize
      - `switch` is `faster` that `vector::operator[]` ( or I think :)
      - call of lambda is expensive comparing to simple pass of one `size_t` to function.
 
 ```c++
-    do
+    while( false == ifs.eof() )
     {
+        if( false == l.eat( ifs.get() ) )
+            break;
+
         if( true == ifs.eof() )
             l.flush();
-        else
-            if( false == l.eat( ifs.get() ) )
-                break;
 
         lex_t::size_type t = l.token();
         if( l.size() == l.token() )
@@ -205,13 +201,12 @@ Parse stream that contains lines of comma separated numbers.
                 case( 2 ): std::cout << "separator"; y.accept(2); break;
             }
        }
-    }while( false == ifs.eof() )
+    }
 ```
 
+  #### III.2.1.B Lambda
 
-  #### 2.1.B Lambda
-
-  #### 2.1.B.a definition
+  #### 2III..1.B.a definition
    Lambda in the best.
    Number of function is minimal as possible. No eat( char_type ), push( regex_type ). This will force programmer to decide speed or flexibility.
 ```c++
@@ -219,10 +214,9 @@ Parse stream that contains lines of comma separated numbers.
       class lex_lambda
        {
         typedef charT char_type;
-        typedef std::size_t size_type;
         typedef lex_basic<charT, traits > lex_basic_type;
         typedef std::regex<character_type, traits> regex_type;
-        typedef std::basic_string< char_type, traits, Alloc > match_type; //{options:[match_type:string|match_results|...]}
+        typedef std::basic_string< char_type, traits, Alloc > match_type; //{options:[match_type:string|match_results|vector|tuple<size_t,size_t,string>...]}
 
         typedef std::function< void( match_type const& ) > action_type;
 
@@ -241,32 +235,33 @@ Parse stream that contains lines of comma separated numbers.
 
 ```
 
-  #### 2.1.B.b Conditions
+  #### III.2.1.B.b Conditions
 
-   - `void push( regex_type const&, action_type const&)`
-   -- description: associate lambda to given regex. Just push in to internal list.
+    `void push( regex_type const&, action_type const&)`
+      - description: associate lambda to given regex. Just push in to internal list.
+      - pre-con: nothing
+        - effect: `good()` will return `false`.
 
-   - `iteratorT parse( iteratorT const& begin iteratorT const& end )`
-   - description: parse input stream and call appropriate lambda.
-    - `bool compile()`
-    - same as `lex_t::compile`
-    - `bool good()const;
-    - true - instance is readu to parse-name
-    - false - instance is not ready to parse. `compile` is not called or `push` is called before `compile`
+    `iteratorT parse( iteratorT const& begin iteratorT const& end )`
+      - description: parse input stream and call appropriate lambda.
 
     `void clear();`
-       - description: remove all regex from internal lists. Allow instance to be reused.
-       - complexity: implementation defined
-       - pre-con: Does not matter.
-       - effect: good() will return false
-       - effect: compile() will return false
-       - effect: parse() will return begin
+      - description: remove all regex from internal lists. Allow instance to be reused.
+      - complexity: implementation defined
+      - pre-con: Does not matter.
+        - effect: same as `lex_t::clear()`
 
+     `lex_t::compile`
+     - note: same as `lex_t::compile`
 
-  #### 2.1.B.c Examples
+      `good()`
+     - note: same as `lex_t::good`
+
+  #### III.2.1.B.c Examples
+
   ###### Make instance:
 
-Just make one instance of `lex` for `char` type.
+Just make one instance of `lex_lambda` for `char` type.
 ```c++
     typedef  std::lex_lambda<char> clex_t;
     clex_t l;
@@ -294,6 +289,48 @@ Parse stream that contains lines of comma separated numbers.
 
       ```
 
+  #### III.2.1.C Range adapter
+
+   #### III.2.1.C.a description
+   If there is a need for iterating by using range-based loop.
+   `token_iterator` will make something able to iterate by using range-based for loop.
+
+   #### III.2.1.C.b Definition
+
+   ##### Possible Definition
+```c++
+    template< typename iteratorT, typename charT, typename traits = regex_traits<charT>  >
+     class token_iterator
+      {
+       public:
+       typedef __implementation-defined__ iterator_type;
+       token_iterator( iteratorT const& begin, iteratorT const& end, lex_simple<charT, traits > &l );
+
+       iterator_type begin();
+       iterator_type end();
+      }
+```
+
+  #### III.2.1.C.c Example
+
+```c++
+    typedef  std::lex_simple<char> clex_t;
+    clex_t l;
+    l.push( clex_t::regex_type("[0-9]+") );
+    l.push( clex_t::regex_type("\n")     );
+    l.push( clex_t::regex_type(",")      );
+    l.compile();
+
+    yacc_t y;
+    std::vector<char> v;
+
+    for( auto token:  token_iterator( v.begin(), v.end(), l ) )
+     {
+      y.accept( token )
+      std::cout << token << std::endl;
+     }
+```
+
 
 # IV. Summary of options
   * class-name.
@@ -304,23 +341,24 @@ Parse stream that contains lines of comma separated numbers.
     Another minor issue.
 
 # IV. Design Decisions
-  Main goal is to make number of member functions of `lex` as small as possible. Specially number of classes or functions.\
-  Everything is reduced to one class.\
-  Usually, from my experience, that some extras appear as appendix and it is rarely used.
-  `lex` class is designed in manner that is possible to easy connect with `yacc`-like features.
+  Main goal is to make number of member functions of `lex` as small as possible.\
+  `lex` classes is designed in manner that is possible to easy connect with `yacc`-like features.
 
+   - Why two classes/function
+      - `lex_simple` offers utilizing speed of switch and avoid expensive call of lambda-have
+      -`lex_lambda` offers rapid code developing and flexibility in maintenance.
   - No iteration or deleting of pushed regular expressions?
-    This will make this library more complicate. Focus is on parsing not on container maintenance. If desired this functionality can be easily added.
+      This will make this library more complicate. Focus is on parsing not on container maintenance. If desired this functionality can be easily added.
     `lex_basic::push` already return number, `lex_basic::erase( size_t )` this is like opposite of iterator idea,
-    tendency is to erase regex associate to token and this will be forced explicitly true size_t.
-  - size_t vs. enum
+    tendency is to erase regex associate to token and this will be forced explicitly through `size_t`.
+  - `size_t` vs. `enum`
     Adding `enum` as custom token numbering will increase parameter list of `lex_lambda`.
-    Number of temple parameter is too large lex_lambda. If added to lex_basic this will have domino effect to lex_lambda.
+    Number of temple parameter is too large `lex_lambda`. If added to lex_basic this will have domino effect to `lex_lambda`.
 
     Here is obvious benefit.
     ```c++
       enum CSVToken{ FIELD, COMMA, NEWL };
-      lex_basic<char,CSVToken > l1;
+      lex_basic< char, CSVToken > l1; //!< Traits and allocator are default
 
       yacc<CVSToken> y1;
 
