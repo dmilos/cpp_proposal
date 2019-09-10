@@ -6,13 +6,13 @@ Dejan D.M. Milosavljevic
 
 # Table of Contents.
 
-   I. Introduction
-   II. Motivation
-   III. Solutions
-   IV. Summary of options
-   IV. Design Decisions
-   V. Impact On the Standard
-   VI. Links
+   - I. Introduction
+   - II. Motivation
+   - III. Solutions
+   - IV. Summary of options
+   - IV. Design Decisions
+   - V. Impact On the Standard
+   - VI. Links
 
 # I. Introduction
   1. Form
@@ -177,9 +177,10 @@ Parse stream that contains lines of comma separated numbers.
 ###### III.2.1.A.b Parsing
    In this version `lex` does not have ability to call lambda. It is up to user to take some action when token is parsed.
    Send character one by one to `lex`. When lex discover unique token function `lex:token` will return number different than `lex::size()`.
-   In here we will utilize
-     - `switch` is `faster` that `vector::operator[]` ( or I think :)
-     - call of lambda is expensive comparing to simple pass of one `size_t` to function.
+   
+   In here it is utilized:   
+  - avoid call of `vector::operator[]`. 
+  - avoid call of lambda.
 
 ```c++
     while( false == ifs.eof() )
@@ -193,7 +194,7 @@ Parse stream that contains lines of comma separated numbers.
         lex_t::size_type t = l.token();
         if( l.size() == l.token() )
         {
-            // Shorter variant but no diagnostics: `y.accept( l.token() );`
+            // Shorter/Fastest variant but no diagnostics: `y.accept( l.token() );`
             switch( l.token() )
             {
                 case( 0 ): std::cout << "number";    y.accept(0); break;
