@@ -36,7 +36,7 @@ Dejan D.M. Milosavljevic
 
 # III. Solutions
   ## III.1. Description
-    Add well know Lex. See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
+  Add well know Lex. See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
 
   ## III.2. Classes
    The classes.
@@ -71,40 +71,40 @@ Dejan D.M. Milosavljevic
 ```
 
   ##### III.2.1.A.b Conditions
+  
+  - `size_type push( regex_type const& )`
+    - description: Add regular expression in internal list
+    - complexity: same as `vector<regex_type>::push_back`
+    - pre-con: consumed() return non-zero;
+      - effect: return number same as size()
+    - pre-con: consumed() return zero;
+      - effect: size() will increase for one
+      - effect: return value is equal to `size() -1`.
+      - effect: if some eaten sequence match this regular expression `token` will return number returned by `push`
 
-    `size_type push( regex_type const& )`
-       - description: Add regular expression in internal list
-       - complexity: same as `vector<regex_type>::push_back`
-       - pre-con: consumed() return non-zero;
-         - effect: return number same as size()
-       - pre-con: consumed() return zero;
-         - effect: size() will increase for one
-         - effect: return value is equal to `size() -1`.
-         - effect: if some eaten sequence match this regular expression `token` will return number returned by `push`
+ - `size_type size()const`
+   - description: return number of pushed regular expression
+   - complexity: same as vector<regex_type>::size
+   - pre-con: Does not matter.
+   - effect: No change
 
-    `size_type size()const`
-       - description: return number of pushed regular expression
-       - complexity: same as vector<regex_type>::size
-       - pre-con: Does not matter.
-       - effect: No change
+ - `void clear();`
+   - description: remove all regex from internal lists
+   - complexity: implementation defined
+   - pre-con: Does not matter.
+     - effect: consumed() will return -1
+     - effect: size() will return 0
+     - effect: token() will return 0
+     - effect: eat() will return `false`
+     - effect: compile() will return `false`
 
-    `void clear();`
-       - description: remove all regex from internal lists
-       - complexity: implementation defined
-       - pre-con: Does not matter.
-         - effect: consumed() will return -1
-         - effect: size() will return 0
-         - effect: token() will return 0
-         - effect: eat() will return `false`
-         - effect: compile() will return `false`
-
-    `bool compile();`
+ - `bool compile();`
       - Description: prepare internal data so the parsing can begin
        - complexity: implementation defined
       - pre-con: Does not matter.
         - effect: `consumed()` will return 0.
 
-    `int consumed()const;`
+ - `int consumed()const;`
       - Description: return number of successfully processed characters.
       - complexity: constant
       - pre-con: nothing
@@ -112,7 +112,7 @@ Dejan D.M. Milosavljevic
         - effect: return  zero     - ready to parse
         - effect: return  positive - number of parsed characters.
 
-    `bool restart();`
+ - `bool restart();`
       - Description: Clear internal state and prepare for new parsing.
       - Complexity: constant
       - pre-con: `consumed()` is negative ;
@@ -128,7 +128,7 @@ Dejan D.M. Milosavljevic
       -  pre-con: `consumed()` is negative.
        - effect: return `false`.
 
-    `bool flush();`
+ - `bool flush();`
       - Description: Force internal state that is no more input and set internal state so `token()` may return value different than `size()`
       - Complexity: constant
       -  pre-con: `consumed()` is zero or positive.
@@ -138,7 +138,7 @@ Dejan D.M. Milosavljevic
       - pre-con: `consumed()` is negative.
         -effect: return `false`;
 
-    `size_type token();`
+ - `size_type token();`
       - Description: return index of uniquely matched regex
       - complexity: constant
       -pre-con: `consumed()` is zero or positive
@@ -232,31 +232,30 @@ Parse stream that contains lines of comma separated numbers.
         protected:
           lex_basic_type m_lex; //!< exposition only
        };
-
 ```
 
   #### III.2.1.B.b Conditions
 
-    `void push( regex_type const&, action_type const&)`
+ - `void push( regex_type const&, action_type const&)`
       - description: associate lambda to given `regex`. Just push in to internal list.
       - pre-con: nothing
         - effect: `good()` will return `false`.
       - complexity: constant.
 
-    `iteratorT parse( iteratorT const& begin iteratorT const& end )`
+ - `iteratorT parse( iteratorT const& begin iteratorT const& end )`
       - description: parse input stream and call appropriate lambda.
       - complexity: linear.
       
-    `void clear();`
+ - `void clear();`
       - description: remove all regex from internal lists. Allow instance to be reused.
       - complexity: implementation defined
       - pre-con: Does not matter.
         - effect: same as `lex_t::clear()`
 
-     `lex_t::compile`
+ - `lex_t::compile`
      - note: same as `lex_t::compile`
 
-      `good()`
+ - `good()`
      - note: same as `lex_t::good`
 
   #### III.2.1.B.c Examples
@@ -280,18 +279,19 @@ Parse stream that contains lines of comma separated numbers.
     l.push( std::regex(",")     , [&y](clex_t::match_type const& m)->void{ y.eat(2); } );
     l.compile();
 ```
+
 ###### Parsing
-   Do everything automatically
-      ```c++
-        std::ifstream ifs0( "some-file.txt" );
-         l.eat( std::istream_iterator( ifs0 ), std::istream_iterator() );
+   Do everything automatically.
+   
+```c++
+    std::ifstream ifs0( "some-file.txt" );
+    l.eat( std::istream_iterator( ifs0 ), std::istream_iterator() );
 
-        std::ifstream ifs1( "other-file.txt" );
-         l.eat( std::istream_iterator( ifs1 ), std::istream_iterator() );
+    std::ifstream ifs1( "other-file.txt" );
+    l.eat( std::istream_iterator( ifs1 ), std::istream_iterator() );
+```
 
-      ```
-
-  #### III.2.1.C Range adapter
+#### III.2.1.C Range adapter
 
    #### III.2.1.C.a description
    If there is a need for iterating by using range-based loop.
@@ -336,13 +336,13 @@ Parse stream that contains lines of comma separated numbers.
 
 
 # IV. Summary of options
-  * {options:[lex_simple-name:lex|flex|Lex|lex_basic]}. 
+  * {options:[lex_simple-name:lex|flex|Lex|lex_basic]}. \
     Just name of class.
-  * {options:[eat-one-name:eat|parse]}
+  * {options:[eat-one-name:eat|parse]}\
     This is minor issues. I use `eat` just to make difference from `parse`.
-   * {options:[match_type:string|match_results|vector|tuple<size_t,size_t,string>...]}
-    Not so minor issue. For diagnostic purpose sometimes we realy need begin/aend of parsed toke.
-   * {options:[lex_lambda-name:lex_lambda|...]}
+   * {options:[match_type:string|match_results|vector|tuple<size_t,size_t,string>...]}\
+    Not so minor issue. For diagnostic purpose sometimes we realy need begin/end of parsed token.
+   * {options:[lex_lambda-name:lex_lambda|...]}\
     Another minor issue.
 
 # IV. Design Decisions
