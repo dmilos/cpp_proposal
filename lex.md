@@ -17,7 +17,7 @@ Dejan D.M. Milosavljevic
 # I. Introduction
   1. Form
     This document is designed in the form to so that reader can easily express their view by choosiness given options.
-    Example: {options[lambda-have:true|false]} give option to have [options:true] lambdas not have [options:false].
+    Example: {options:[lex_simple-name:lex|flex|Lex|lex_basic]}} give option that name might be lex or flex, etc..
     So the viewer at the end can express opinion like:  [ match_type:string], [eat-one-name:process]
   2. About
     Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed.
@@ -27,6 +27,7 @@ Dejan D.M. Milosavljevic
   There is a trend to add more features to existing regular expression. Like Lookaheads or Inline Modifiers.
   Disadvantages of adding extra feature are:
    - Greater complexity during applying `regex` search/match, implementation might use something that is not finite state machine.
+    - - Can not relay on execution complexity.
    - Harder do learn all extra features
    - Possible overlap of old and extra features
    - Harder to add new feature without risk of that new feature may overlap with existing
@@ -61,7 +62,7 @@ Dejan D.M. Milosavljevic
         void clear();
 
         bool compile();
-        int consumed()const;
+        int  consumed()const;
         bool restart();
 
         bool eat( char_type const& c ); //!< {options:[eat-one-name:eat|parse]}
@@ -74,12 +75,12 @@ Dejan D.M. Milosavljevic
     `size_type push( regex_type const& )`
        - description: Add regular expression in internal list
        - complexity: same as `vector<regex_type>::push_back`
-      - pre-con: consumed() return non-zero;
-        - effect: return number same as size()
-      - pre-con: consumed() return zero;
-        - effect: size() will increase for one
-        - effect: return value is equal to `size() -1`.
-        - effect: if some eaten sequence match this regular expression `token` will return number returned by `push`
+       - pre-con: consumed() return non-zero;
+         - effect: return number same as size()
+       - pre-con: consumed() return zero;
+         - effect: size() will increase for one
+         - effect: return value is equal to `size() -1`.
+         - effect: if some eaten sequence match this regular expression `token` will return number returned by `push`
 
     `size_type size()const`
        - description: return number of pushed regular expression
@@ -100,44 +101,42 @@ Dejan D.M. Milosavljevic
     `bool compile();`
       - Description: prepare internal data so the parsing can begin
        - complexity: implementation defined
-      - pre-con:
-        -- effect: TODO
-      - pre-con: TODO
+      - pre-con: Does not matter.
         - effect: `consumed()` will return 0.
 
     `int consumed()const;`
-     - Description: return number of successfully processed characters.
+      - Description: return number of successfully processed characters.
       - complexity: constant
-     - pre-con: nothing
-       - effect: return negative  - can not parse,
-       - effect: return  zero     - ready to parse
-       - effect: return  positive - number of parsed characters.
+      - pre-con: nothing
+        - effect: return negative  - can not parse,
+        - effect: return  zero     - ready to parse
+        - effect: return  positive - number of parsed characters.
 
     `bool restart();`
-     - Description: Clear internal state and prepare for new parsing.
-      - complexity: constant
-     - pre-con: `consumed()` is negative ;
-      - effect: return false;
-     - pre-con: `consumed()` is zero or positive . return true.
-       - effect: `consumed()` return 0;
+      - Description: Clear internal state and prepare for new parsing.
+      - Complexity: constant
+      - pre-con: `consumed()` is negative ;
+       - effect: return `false`;
+      - pre-con: `consumed()` is zero or positive 
+        - effect: `consumed()` return true;
 
     `bool eat( char_type const& c );`
       - Description: Process given character by changing internal state.
-      - complexity: constant
+      - Complexity: constant
       -  pre-con: `consumed()` is zero or positive .
-       - effect: false -  return character rejected. Internal state is unchanged. Can proceed with new character.
+       - effect: return `false`. Supplied character rejected. Internal state is unchanged. Can proceed with new character.
       -  pre-con: `consumed()` is negative.
-       - effect: return false.
+       - effect: return `false`.
 
     `bool flush();`
       - Description: Force internal state that is no more input and set internal state so `token()` may return value different than `size()`
-      - complexity: constant
+      - Complexity: constant
       -  pre-con: `consumed()` is zero or positive.
-        - effect: return true;
+        - effect: return `true`;
         - effect: `consumed()` is zero
         - effect: `token()` may return value less than `size()`.
       - pre-con: `consumed()` is negative.
-        -effect: return false
+        -effect: return `false`;
 
     `size_type token();`
       - Description: return index of uniquely matched regex
@@ -209,10 +208,10 @@ Parse stream that contains lines of comma separated numbers.
 
   #### 2III..1.B.a definition
    Lambda in the best.
-   Number of function is minimal as possible. No eat( char_type ), push( regex_type ). This will force programmer to decide speed or flexibility.
+   Number of function is minimal as possible. No eat( char_type ), push( regex_type ). This will force programmer to decide: speed or flexibility.
 ```c++
     template < class charT, class traits = regex_traits<charT>, class Alloc = allocator<charT> >
-      class lex_lambda
+      class lex_lambda //!< {options:[lex_lambda-name:lex_lambda|...]}
        {
         typedef charT char_type;
         typedef lex_basic<charT, traits > lex_basic_type;
@@ -239,13 +238,15 @@ Parse stream that contains lines of comma separated numbers.
   #### III.2.1.B.b Conditions
 
     `void push( regex_type const&, action_type const&)`
-      - description: associate lambda to given regex. Just push in to internal list.
+      - description: associate lambda to given `regex`. Just push in to internal list.
       - pre-con: nothing
         - effect: `good()` will return `false`.
+      - complexity: constant.
 
     `iteratorT parse( iteratorT const& begin iteratorT const& end )`
       - description: parse input stream and call appropriate lambda.
-
+      - complexity: linear.
+      
     `void clear();`
       - description: remove all regex from internal lists. Allow instance to be reused.
       - complexity: implementation defined
@@ -295,6 +296,7 @@ Parse stream that contains lines of comma separated numbers.
    #### III.2.1.C.a description
    If there is a need for iterating by using range-based loop.
    `token_iterator` will make something able to iterate by using range-based for loop.
+   Implementation might be by using function or class.
 
    #### III.2.1.C.b Definition
 
@@ -325,7 +327,7 @@ Parse stream that contains lines of comma separated numbers.
     yacc_t y;
     std::vector<char> v;
 
-    for( auto token:  token_iterator( v.begin(), v.end(), l ) )
+    for( auto token: token_iterator( v.begin(), v.end(), l ) )
      {
       y.accept( token )
       std::cout << token << std::endl;
@@ -334,11 +336,13 @@ Parse stream that contains lines of comma separated numbers.
 
 
 # IV. Summary of options
-  * class-name.
-    Name of class it self. My proposal is to use `lex`
-  * eat-one-name
+  * {options:[lex_simple-name:lex|flex|Lex|lex_basic]}. 
+    Just name of class.
+  * {options:[eat-one-name:eat|parse]}
     This is minor issues. I use `eat` just to make difference from `parse`.
-   * parse-name
+   * {options:[match_type:string|match_results|vector|tuple<size_t,size_t,string>...]}
+    Not so minor issue. For diagnostic purpose sometimes we realy need begin/aend of parsed toke.
+   * {options:[lex_lambda-name:lex_lambda|...]}
     Another minor issue.
 
 # IV. Design Decisions
@@ -346,7 +350,7 @@ Parse stream that contains lines of comma separated numbers.
   `lex` classes is designed in manner that is possible to easy connect with `yacc`-like features.
 
    - Why two classes/function
-      - `lex_simple` offers utilizing speed of switch and avoid expensive call of lambda-have
+      - `lex_simple` offers utilizing speed of switch and avoid expensive call of lambda.
       -`lex_lambda` offers rapid code developing and flexibility in maintenance.
   - No iteration or deleting of pushed regular expressions?
       This will make this library more complicate. Focus is on parsing not on container maintenance. If desired this functionality can be easily added.
@@ -354,7 +358,7 @@ Parse stream that contains lines of comma separated numbers.
     tendency is to erase regex associate to token and this will be forced explicitly through `size_t`.
   - `size_t` vs. `enum`
     Adding `enum` as custom token numbering will increase parameter list of `lex_lambda`.
-    Number of temple parameter is too large `lex_lambda`. If added to lex_basic this will have domino effect to `lex_lambda`.
+    Number of temple parameter is too large in `lex_lambda`. If added to lex_basic this will have domino effect to `lex_lambda`.
 
     Here is obvious benefit.
     ```c++
