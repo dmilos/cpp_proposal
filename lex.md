@@ -18,7 +18,7 @@ Dejan D.M. Milosavljevic
   1. Form
     This document is designed in the form to so that reader can easily express their view by choosiness given options.
     Example: {options:[lex_simple-name:lex|flex|Lex|lex_basic]}} give option that name might be lex or flex, etc..
-    So the viewer at the end can express opinion like:  [ match_type:string], [eat-one-name:process]
+    So the viewer at the end can express opinion like:  [match_type:string], [eat-one-name:process]
   2. About
     Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed.
     In here it will be presented one possible implementation. Another benefit is speed of parsing too.
@@ -211,7 +211,7 @@ Parse stream that contains lines of comma separated numbers.
 #### III.2.1.B Lambda
 
 #### 2III.1.B.- Definition
-   Lambda in the best. Offers rapid code developing and flexibility in maintenance.
+   Lambda in the best. Offers rapid code development and flexibility in maintenance.
 
 ```c++
     template < class charT, class traits = regex_traits<charT>, class Alloc = allocator<charT> >
@@ -352,11 +352,11 @@ Parse stream that contains lines of comma separated numbers.
   Main goal is to make number of member functions of classes as small as possible.\
   Classes are designed in manner that is possible to easy connect with `yacc`-like features.
 
-  - No iteration or deleting of pushed regular expressions?
+  - No iteration or deleting of pushed regular expressions?\
       This will make this library more complicate. Focus is on parsing not on container maintenance. If desired this functionality can be easily added.
      `lex_basic::push` already return number, `lex_basic::erase( size_t )` this is like opposite of iterator idea.
      Tendency is to erase regex associate to token and this will be forced explicitly through `size_t`.
-  - `size_t` vs. `enum` for token type
+  - `size_t` vs. `enum` for token type.\
     Adding `enum` as custom token numbering will increase parameter list of `lex_lambda`.
     Number of temple parameter is too large in `lex_lambda`. If added to lex_basic this will have domino effect to `lex_lambda`.
 
@@ -376,16 +376,13 @@ Parse stream that contains lines of comma separated numbers.
     ```
 
 # V. Impact On the Standard
-  * Core
-
+  * Core\
     None. This is library level.
 
-  * Library
-
+  * Library\
     None. This is new feature.
 
-  * Existing code
-
+  * Existing code\
     None. New class will be under `std` namespace.
 
 # VI. Links
