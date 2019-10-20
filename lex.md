@@ -47,8 +47,8 @@ Dejan D.M. Milosavljevic
    Imperative is that final code must be fast as possible avoiding everything what slowing down execution paring process.\
    Send character one by one to `lex`.\
    When lex discover unique token function `lex:token` will return number different than `lex::size()`.\   
-   
-   Only output is newly discovered token.\
+   Only output is newly discovered token.
+
    In here it is utilized:
   - avoid call of `vector::operator[]`.
   - avoid call of lambda.
