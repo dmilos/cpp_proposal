@@ -21,10 +21,11 @@ Dejan D.M. Milosavljevic
     So the viewer at the end can express opinion like:  [match_type:string], [eat-one-name:process]
   2. About
     Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed.
-    In here it will be presented one possible implementation. Another benefit is speed of parsing too.
+    In here it will be presented one possible implementation.
 
 # II. Motivation
   There is a trend to add more features to existing regular expression. Like Lookaheads or Inline Modifiers.
+
   Disadvantages of adding extra feature are:
    - Greater complexity during applying `regex` search/match, implementation might use something that is not finite state machine.
     - - Can not relay on execution complexity.
@@ -46,7 +47,7 @@ Dejan D.M. Milosavljevic
 ### III.2.1 Simple lex
    Imperative is that final code must be fast as possible avoiding everything what slowing down execution paring process.\
    Send character one by one to `lex`.\
-   When lex discover unique token function `lex:token` will return number different than `lex::size()`.\   
+   When lex discover unique token function `lex:token` will return number different than `lex::size()`.\
    Only output is newly discovered token.
 
    In here it is utilized:
@@ -54,7 +55,8 @@ Dejan D.M. Milosavljevic
   - avoid call of lambda.
   - direct pass of token to other parties.
   - avoid character counting.
-  - avoid assembling value of token in to std::string
+  - avoid assembling value of token in to `std::string`
+   - - Avoid call of system allocation function 
 
 #### III.2.1.A definition
 
@@ -321,7 +323,7 @@ Expect stream that contains lines of comma separated numbers.
 
 #### III.2.1.D Example
  Example given in III.2.1.A.-.- can be rewritten in form like
- 
+
 ```c++
     typedef  std::lex_simple<char> clex_t;
     clex_t l;
@@ -378,7 +380,7 @@ Expect stream that contains lines of comma separated numbers.
 
       yacc<SpaceSVToken> y2;
 
-      y1.eat( l2.token() ); //!< Error!!
+      y1.accept( l2.token() ); //!< Error!!
     ```
 
 # V. Impact On the Standard
