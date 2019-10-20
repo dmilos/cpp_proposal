@@ -28,7 +28,7 @@ Dejan D.M. Milosavljevic
 
   Disadvantages of adding extra feature are:
    - Greater complexity during applying `regex` search/match, implementation might use something that is not finite state machine.
-    - - Can not relay on execution complexity.
+     - Can not relay on execution complexity.
    - Harder do learn all extra features
    - Possible overlap of old and extra features
    - Harder to add new feature without risk of that new feature may overlap with existing
@@ -56,7 +56,7 @@ Dejan D.M. Milosavljevic
   - direct pass of token to other parties.
   - avoid character counting.
   - avoid assembling value of token in to `std::string`
-   - - Avoid call of system allocation function 
+    - Avoid call of system allocation function 
 
 #### III.2.1.A definition
 
