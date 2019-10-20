@@ -1,295 +1,355 @@
-<!doctype html>
-<html>
-<head>
-    <title>Lex</title>
-     <style type="text/css">
-<!--
-
-body {
-    margin-top: 20mm;
-    margin-right: 18mm;
-    margin-bottom: 20mm;
-    margin-left: 18mm;
-    border-width: 0;
-    padding-top: 0px;
-    padding-right: 0px;
-    padding-bottom: 0px;
-    padding-left: 0px;
-    margin: 0;
-    vertical-align: baseline;
-    font-size:16px;
-}
-
-table {
-     vertical-align: baseline;
-}
-.paragraf {
-    text-indent: 10pt;
-}
-
-.IndentedBlock3ex {
-    margin-left: 3ex;
-}
-
-.IndentedBlock2ex {
-    margin-left: 2ex;
-}
-
-.IndentedBlock1ex {
-    margin-left: 1ex;
-}
-.NovaStranica {
-    page-break-before: auto;
-    page-break-after: always;
-}
-
-.NaslovStranice
-{
- font-size:30px;
- font-weight:bold;
-}
-
-.NaslovGlavni
-{
- font-size:28px;
- font-weight:bold;
-}
-
-.NaslovPod
- {
-  font-size: 22px;
-  font-weight:bold;
- }
-
-.Naslovcic
- {
-  font-size: 18px;
-  font-weight:bold;
- }
-
-.NaslovcicJosManji
- {
-  font-size: 16px;
-  font-weight:bold;
- }
-
-.TextObican
- {
-    font-size: 15px;
- }
-.TOCItem
-{
- font-size:18px;
- font-weight:bold;
-}
-
-
-.NaslovDefinicije
-{
-    font-size: 10;
-}
-
-.TextCode
- {
-    font-size: 12px;
- }
-
--->
-  </style>
-</head>
-<body>
-
-		<h1 align="center" > <div class="NaslovStranice">LEX</div> </h1>
-		<table border="0" width="100%">
-			<tr>
-				<td width="100%">&nbsp;</td>
-				<td nowrap="nowrap">
-					Document number: <br>
-					Date: <br>
-					Reply to:<br>
-					<br>
-				</td>
-				<td nowrap="nowrap">
-					<br>
-					2019/09/10<br>
-					Dejan D.M. Milosavljevic<br>
-					(dmilos at gmail dot com)<br>
-				</td>
-				<td width="10%">&nbsp;</td>
-			</tr>
-		</table>
-		<dl>
-			<dt><div class="NaslovGlavni">Table of Contents.</div></dt>
-			<dd>
-				<ul>
-					<li><div class="TOCItem">I. Introduction</div></li>
-					<li><div class="TOCItem">II. Motivation and Scope</div></li>
-					<li><div class="TOCItem">III. Solutions</div></li>
-					<li><div class="TOCItem">IV. Design Decisions</div></li>
-					<li><div class="TOCItem">V. Impact On the Standard</div></li>
-					<li><div class="TOCItem">VI. References</div></li>
-				</ul>
-			</dd>
-
-			<dt><div class="NaslovGlavni">I. Introduction</div></dt>
-			<dd>
-				Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed.
-                In here will be presented one possible implementation of lex.
-			</dd>
-			<dt><div class="NaslovGlavni">II. Motivation and Scope</div></dt>
-			<dd>
-			There is a trend to add more features to existing regular expression.<br>
-			Main reason for this i that regular expression can ( and must ) be implemented only by using finite state machines.<br>
-			And there should be guarantee that implementation use finite state machines.<br>
-			With this it is possible to guarantee time and complexity of regex execution( if not ).<br>
-			See: Chomsky_hierarchy.
-
-			</DD>
-			<dt><div class="NaslovGlavni">III. Solutions</div></dt>
-			<dd>
-				Add lex.<br>
-
-<pre>
-    Code sample:
-    typedef  std::lex&lt;int &gt; lex_t;
-    lex_t l;
-
-    l.token( std::regex("[0-9]+"), []( lex_t::match_type const& mt )->void{ std::cout << "number"; });
-    l.token( std::regex("\n"),     []( lex_t::match_type const& mt )->void{ std::cout << "new-line"; });
-    l.token( std::regex(","),      []( lex_t::match_type const& mt )->void{ std::cout << "separator"; });
-    l.compile();
-
-    //Simpliest variant. Condition: [lambda-have:(true)]
-    std::ifstream ifs("test2.txt")
-    l.eat( std::istream_iterator<char>( ifs ), std::istream_iterator<char>() );
-    // No need for reset or flush. everything is automatic inside eat( begin, end )
-    
-    //Feed lex one by one character. Condition: [lambda-have:(true)]
-    std::ifstream ifs("test1.txt")
-    while( ifs.eof() )
-    {
-        l.eat( ifs.get() );
-    }
-    l.flush(); // No more input. Call appropriate lambda if unique exists. Clear internal state. 
-
-    // [lambda-have:(false)] Most complicated variant, Probably the fastest comparing to [lambda-have:(true)]
-    do
-    {
-        if( true == ifs.eof() )
-            l.flush();
-        else
-            if( false == l.eat( ifs.get() ) )
-                break;
-
-        lex_t::size_type  t = l.token();
-        if( l.size() == l.token() )
-            switch( l.token() )
-            {
-                case( 0 ): std::cout << "number";    break;
-                case( 1 ): std::cout << "new-line";  break;
-                case( 2 ): std::cout << "separator"; break;
-            }
-    }while( false == ifs.eof() )
-
-
-</pre>
-
-<pre>
-
-
-    template< typename character_name >
-      class lex //[name:lex|flex|Lex]
-       {
-        typedef character_name char_type;
-        typedef std::size_t size_type;
-
-        typedef std::regex<character_name> regex_type;
-        typedef --TODO-- match_type;
-        typedef std::function< void( match_type const&) > action_type; //!< [lambda-have:(true)]
-        typedef --implementation-defined-- iterator_type;
-
-        // Container things
-        void clear(); //! Clear everything including parse state, good will return false, size() will return 0.
-        size_type size()const;
-        iterator_type begin();
-        iterator_const cbegin()const;
-        iterator_type end();
-        iterator_const cend()const;
-
-        void erase( iterator_type );
-
-        size_type push( regex_type ); //!< [lambda-have:(false)]//!< return value is allways equal to prevously retrieved size()
-        size_type push( regex_type, action_type ); //!< [push-lambda-return:bool|size_t] [lambda-have:(true)] //!< return value is allways equal to prevously retrieved size().
-
-        // the logic.
-        bool compile();
-
-        bool eat( char_type ); //! processing one character. true - Parsing is OK, waiting for another. false - can not process given character. 
-        template< typename iterator_name >
-         iterator_name eat( iterator_name const& begin iterator_name const& end ); //! processing sequence, return last unprocessed or equal to end.
-        void flush(); No more input. Finish parsing. Also clear internal state, same as restart
-
-        // eqial to size() - waiting for more character.
-        // not equal to size() - have complete token, last eaten character is not part of parsed token
-        size_type token(); //[lambda-have:(false)],
-
-        bool good()const; //! No push/remove performed after compile
-        bool restart(); //! clear internal parse state
-       };
-
-</pre>
-
-			</dd>
-			<dt><div class="NaslovGlavni">IV. Summary of options</div></dt>
-			<dd>
-				<dl>
-					<dt>name.</dt><dd>TODO.</dd>
-					<dt>lambda-have.</dt><dd>TODO.</dd>
-				</dl>
-			</dd>
-
-
-			</dd>
-			<dt><div class="NaslovGlavni">IV. Design Decisions</div></dt>
-			<dd>
-				<ul>
-					<li>TODO.</li>
-				</ul>
-			</dd>
-
-			<dt><div class="NaslovGlavni">V. Impact On the Standard</div></dt>
-			<dd>
-				<dl>
-					<dt> <div class="NaslovPod ">Core</div> </dt>
-					<dd>
-						None. This is library level.
-					</dd>
-					<dt><div class="NaslovPod ">Library</div></dt>
-					<dd>None. This is new feature.</dd>
-					<dt><div class="NaslovPod ">Existing code.</div></dt>
-					<dd>None. New class will be under std namespace.</dd>
-				</dl>
-			</dd>
-
-
-			<dt><div class="NaslovGlavni">VI. Links</div></dt>
-			<dd>
-				<dl>
-					<dt> <div class="NaslovPod ">Core</div> </dt>
-					<dd>
-
-            2 . Chomsky_hierarchy
-            - https://en.wikipedia.org/wiki/Chomsky_hierarchy
-            3. A bit of history
-            - https://en.wikipedia.org/wiki/Lex_%28software%29
-
-					</dd>
-				</dl>
-			</dd>
-
-
-		</dl>
-		<hr shade width="100%" align="center">
-
-</body>
-</html>
+<p>LEX</p>
+<p>2019/09/10 Dejan D.M. Milosavljevic (dmilos at gmail dot com)</p>
+<h1 id="table-of-contents.">Table of Contents.</h1>
+<ul>
+<li>I. Introduction</li>
+<li><ol start="2" type="I">
+<li>Motivation</li>
+</ol></li>
+<li><ol start="3" type="I">
+<li>Solutions</li>
+</ol></li>
+<li><ol start="4" type="I">
+<li>Summary of options</li>
+</ol></li>
+<li><ol start="4" type="I">
+<li>Design Decisions</li>
+</ol></li>
+<li>V. Impact On the Standard</li>
+<li><ol start="6" type="I">
+<li>Links</li>
+</ol></li>
+</ul>
+<h1 id="i.-introduction">I. Introduction</h1>
+<ol type="1">
+<li>Form This document is designed in the form to so that reader can easily express their view by choosiness given options. Example: {options:[lex_simple-name:lex|flex|Lex|lex_basic]}} give option that name might be lex or flex, etc.. So the viewer at the end can express opinion like: [match_type:string], [eat-one-name:process]</li>
+<li>About Lex it self offer better handling and manipulation of regular expressions when stream parsing is needed. In here it will be presented one possible implementation. Another benefit is speed of parsing too.</li>
+</ol>
+<h1 id="ii.-motivation">II. Motivation</h1>
+<p>There is a trend to add more features to existing regular expression. Like Lookaheads or Inline Modifiers. Disadvantages of adding extra feature are: - Greater complexity during applying <code>regex</code> search/match, implementation might use something that is not finite state machine. - - Can not relay on execution complexity. - Harder do learn all extra features - Possible overlap of old and extra features - Harder to add new feature without risk of that new feature may overlap with existing - Harder maintain code that use extra features - Harder to add new classes/function on the top of <code>regexp</code> e.g. <code>lex</code> - Risk of not complying with Chomsky hierarchy</p>
+<h1 id="iii.-solutions">III. Solutions</h1>
+<h2 id="iii.1.-description">III.1. Description</h2>
+<p>Add well know Lex.<br />
+See: <a href="https://en.wikipedia.org/wiki/Lex_%28software%29">Lex</a></p>
+<h2 id="iii.2.-classes">III.2. Classes</h2>
+<p>The classes.</p>
+<h3 id="iii.2.1-simple-lex">III.2.1 Simple lex</h3>
+<p>Imperative is that final code must be fast as possible avoiding everything what slowing down execution e.g. lambda execution, character counting.<br />
+Only output is newly discovered token.</p>
+<h4 id="iii.2.1.a-simple">III.2.1.A Simple</h4>
+<h5 id="iii.2.1.a.--definition">III.2.1.A.- definition</h5>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb1-1" data-line-number="1">    <span class="kw">template</span> &lt; <span class="kw">class</span> charT, <span class="kw">class</span> traits = regex_traits&lt;charT&gt; &gt;</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">      <span class="kw">class</span> lex_simple  <span class="co">//!&lt; {options:[lex_simple-name:lex|flex|Lex|lex_basic]}</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">       {</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">        <span class="kw">typedef</span> charT <span class="dt">char_type</span>;</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">        <span class="kw">typedef</span> <span class="bu">std::</span>size_t <span class="dt">size_type</span>;</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">        <span class="kw">typedef</span> <span class="bu">std::</span>regex&lt;charT, traits &gt; <span class="dt">regex_type</span>;</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9">        <span class="dt">size_type</span> push( <span class="dt">regex_type</span> <span class="at">const</span>&amp; );</a>
+<a class="sourceLine" id="cb1-10" data-line-number="10">        <span class="dt">size_type</span> size()<span class="at">const</span>;</a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb1-12" data-line-number="12">        <span class="dt">void</span> clear();</a>
+<a class="sourceLine" id="cb1-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb1-14" data-line-number="14">        <span class="dt">bool</span> compile();</a>
+<a class="sourceLine" id="cb1-15" data-line-number="15">        <span class="dt">int</span>  consumed()<span class="at">const</span>;</a>
+<a class="sourceLine" id="cb1-16" data-line-number="16">        <span class="dt">bool</span> restart();</a>
+<a class="sourceLine" id="cb1-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb1-18" data-line-number="18">        <span class="dt">bool</span> eat( <span class="dt">char_type</span> <span class="at">const</span>&amp; c ); <span class="co">//!&lt; {options:[eat-one-name:eat|parse]}</span></a>
+<a class="sourceLine" id="cb1-19" data-line-number="19">        <span class="dt">size_type</span> token();</a>
+<a class="sourceLine" id="cb1-20" data-line-number="20">       };</a></code></pre></div>
+<h5 id="iii.2.1.a.--conditions">III.2.1.A.- Conditions</h5>
+<ul>
+<li><code>size_type push( regex_type const&amp; )</code>
+<ul>
+<li>description: Add regular expression in internal list</li>
+<li>complexity: same as <code>vector&lt;regex_type&gt;::push_back</code></li>
+<li>pre-con: <code>consumed()</code> return non-zero;
+<ul>
+<li>effect: return number same as size()</li>
+</ul></li>
+<li>pre-con: <code>consumed()</code> return zero;
+<ul>
+<li>effect: <code>size()</code> will increase for one</li>
+<li>effect: return value is equal to <code>size() -1</code>.</li>
+<li>effect: if some eaten sequence match this regular expression <code>token</code> will return number returned by <code>push</code></li>
+</ul></li>
+</ul></li>
+<li><code>size_type size()const</code>
+<ul>
+<li>description: return number of pushed regular expression</li>
+<li>complexity: same as vector<regex_type>::size</li>
+<li>pre-con: Irrelevant.</li>
+<li>effect: No change</li>
+</ul></li>
+<li><code>void clear();</code>
+<ul>
+<li>description: remove all regex from internal lists</li>
+<li>complexity: implementation defined.</li>
+<li>pre-con: Irrelevant.
+<ul>
+<li>effect: <code>consumed()</code> will return -1</li>
+<li>effect: <code>size(</code>) will return 0</li>
+<li>effect: <code>token()</code> will return 0</li>
+<li>effect: <code>eat()</code> will return <code>false</code></li>
+<li>effect: <code>compile() will return</code>false`</li>
+</ul></li>
+</ul></li>
+<li><code>bool compile();</code>
+<ul>
+<li>Description: prepare internal data so the parsing can begin - complexity: implementation defined</li>
+<li>pre-con: Irrelevant.
+<ul>
+<li>effect: <code>consumed()</code> will return 0.</li>
+</ul></li>
+</ul></li>
+<li><code>int consumed()const;</code>
+<ul>
+<li>Description: return number of successfully processed characters.</li>
+<li>complexity: constant.</li>
+<li>pre-con: Irrelevant.
+<ul>
+<li>effect: return negative - can not parse,</li>
+<li>effect: return zero - ready to parse</li>
+<li>effect: return positive - number of parsed characters.</li>
+</ul></li>
+</ul></li>
+<li><code>bool restart();</code>
+<ul>
+<li>Description: Clear internal state and prepare for new parsing.</li>
+<li>Complexity: constant</li>
+<li>pre-con: <code>consumed()</code> is negative ; - effect: return <code>false</code>;</li>
+<li>pre-con: <code>consumed()</code> is zero or positive
+<ul>
+<li>effect: <code>consumed()</code> return true;</li>
+</ul></li>
+</ul>
+<code>bool eat( char_type const&amp; c );</code>
+<ul>
+<li>Description: Process given character by changing internal state.</li>
+<li>Complexity: constant.</li>
+<li>pre-con: <code>consumed()</code> is zero or positive . - effect: return <code>false</code>. Supplied character rejected. Internal state is unchanged. Can proceed with new character.</li>
+<li>pre-con: <code>consumed()</code> is negative. - effect: return <code>false</code>.</li>
+</ul></li>
+<li><code>bool flush();</code>
+<ul>
+<li>Description: Force internal state that is no more input and set internal state so <code>token()</code> may return value different than <code>size()</code></li>
+<li>Complexity: constant.</li>
+<li>pre-con: <code>consumed()</code> is zero or positive. - effect: return <code>true</code>; - effect: <code>consumed()</code> is zero. - effect: <code>token()</code> may return value less than <code>size()</code>.</li>
+<li>pre-con: <code>consumed()</code> is negative. -effect: return <code>false</code>;</li>
+</ul></li>
+<li><code>size_type token();</code>
+<ul>
+<li>Description: return index of uniquely matched regex</li>
+<li>complexity: constant -pre-con: <code>consumed()</code> is zero or positive
+<ul>
+<li>effect: return value equal to <code>size()</code>
+<ul>
+<li>note: waiting for more character.</li>
+</ul></li>
+<li>effect: return value is less than <code>size()</code>
+<ul>
+<li>note: have unique sequence that match only one regular expression.</li>
+<li>note: waiting for more character.</li>
+</ul></li>
+</ul></li>
+<li>pre-con: <code>consumed()</code> is negative.
+<ul>
+<li>effect: return <code>size()</code></li>
+</ul></li>
+</ul></li>
+</ul>
+<h5 id="iii.2.1.a.--examples">III.2.1.A.- Examples</h5>
+<h6 id="iii.2.1.a.-.--make-instance">III.2.1.A.-.- Make instance</h6>
+<p>Just make one instance of <code>lex</code> for <code>char</code> type.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb2-1" data-line-number="1">    <span class="kw">typedef</span>  <span class="bu">std::</span>lex_simple&lt;<span class="dt">char</span>&gt; <span class="dt">clex_t</span>;</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">    <span class="dt">clex_t</span> l;</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">    <span class="co">//!&lt; Important in manner that `lex` should be able to easily cooperate with classes that is able to handle Type-2 or Type-3 grammars.</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">    <span class="dt">yacc_t</span> y;</a></code></pre></div>
+<h6 id="iii.2.1.a.-.--fill-with-information">III.2.1.A.-.- Fill with information</h6>
+<p>Parse stream that contains lines of comma separated numbers.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb3-1" data-line-number="1">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;[0-9]+&quot;</span>) );</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)     );</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;,&quot;</span>)      );</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">    l.compile();</a></code></pre></div>
+<h6 id="iii.2.1.a.-.--parsing">III.2.1.A.-.- Parsing</h6>
+<p>In this version <code>lex</code> does not have ability to call lambda. It is up to user to take some action when token is parsed. Send character one by one to <code>lex</code>. When lex discover unique token function <code>lex:token</code> will return number different than <code>lex::size()</code>.</p>
+<p>In here it is utilized: - avoid call of <code>vector::operator[]</code>. - avoid call of lambda. - direct pass of token to other parties. - avoid character counting. - avoid assembling value of token in to std::string</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb4-1" data-line-number="1">    <span class="cf">while</span>( <span class="kw">false</span> == ifs.eof() )</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">    {</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">        <span class="cf">if</span>( <span class="kw">false</span> == l.eat( ifs.get() ) )</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">            <span class="cf">break</span>;</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">        <span class="cf">if</span>( <span class="kw">true</span> == ifs.eof() )</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">            l.flush();</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">        <span class="dt">lex_t</span>::<span class="dt">size_type</span> t = l.token();</a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">        <span class="cf">if</span>( l.size() == l.token() )</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11">        {</a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">            <span class="co">// Shorter/Fastest variant but no diagnostics: `y.accept( l.token() );`</span></a>
+<a class="sourceLine" id="cb4-13" data-line-number="13">            <span class="cf">switch</span>( l.token() )</a>
+<a class="sourceLine" id="cb4-14" data-line-number="14">            {</a>
+<a class="sourceLine" id="cb4-15" data-line-number="15">                <span class="cf">case</span>( <span class="dv">0</span> ): <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;number&quot;</span>;    y.accept(<span class="dv">0</span>); <span class="cf">break</span>;</a>
+<a class="sourceLine" id="cb4-16" data-line-number="16">                <span class="cf">case</span>( <span class="dv">1</span> ): <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;new-line&quot;</span>;  y.accept(<span class="dv">1</span>); <span class="cf">break</span>;</a>
+<a class="sourceLine" id="cb4-17" data-line-number="17">                <span class="cf">case</span>( <span class="dv">2</span> ): <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;separator&quot;</span>; y.accept(<span class="dv">2</span>); <span class="cf">break</span>;</a>
+<a class="sourceLine" id="cb4-18" data-line-number="18">            }</a>
+<a class="sourceLine" id="cb4-19" data-line-number="19">        }</a>
+<a class="sourceLine" id="cb4-20" data-line-number="20">    }</a></code></pre></div>
+<h4 id="iii.2.1.b-lambda">III.2.1.B Lambda</h4>
+<h4 id="iii.1.b.--definition">2III.1.B.- Definition</h4>
+<p>Lambda in the best. Offers rapid code development and flexibility of maintenance.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb5-1" data-line-number="1">    <span class="kw">template</span> &lt; <span class="kw">class</span> charT, <span class="kw">class</span> traits = regex_traits&lt;charT&gt;, <span class="kw">class</span> Alloc = allocator&lt;charT&gt; &gt;</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">      <span class="kw">class</span> lex_lambda <span class="co">//!&lt; {options:[lex_lambda-name:lex_lambda|...]}</span></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">       {</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">        <span class="kw">typedef</span> charT <span class="dt">char_type</span>;</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">        <span class="kw">typedef</span> lex_basic&lt;charT, traits &gt; <span class="dt">lex_basic_type</span>;</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6">        <span class="kw">typedef</span> <span class="bu">std::</span>regex&lt;<span class="dt">character_type</span>, traits&gt; <span class="dt">regex_type</span>;</a>
+<a class="sourceLine" id="cb5-7" data-line-number="7">        <span class="kw">typedef</span> <span class="bu">std::</span>basic_string&lt; <span class="dt">char_type</span>, traits, Alloc &gt; <span class="dt">match_type</span>; <span class="co">//{options:[match_type:string|match_results|vector|tuple&lt;size_t,size_t,string&gt;...]}</span></a>
+<a class="sourceLine" id="cb5-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb5-9" data-line-number="9">        <span class="kw">typedef</span> <span class="bu">std::</span>function&lt; <span class="dt">void</span>( <span class="dt">match_type</span> <span class="at">const</span>&amp; ) &gt; <span class="dt">action_type</span>;</a>
+<a class="sourceLine" id="cb5-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb5-11" data-line-number="11">        <span class="dt">void</span> push( <span class="dt">regex_type</span> <span class="at">const</span>&amp;, <span class="dt">action_type</span> <span class="at">const</span>&amp; );</a>
+<a class="sourceLine" id="cb5-12" data-line-number="12">        <span class="dt">void</span> clear();</a>
+<a class="sourceLine" id="cb5-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb5-14" data-line-number="14">        <span class="kw">template</span> &lt; <span class="kw">typename</span> iteratorT &gt;</a>
+<a class="sourceLine" id="cb5-15" data-line-number="15">         iteratorT parse( iteratorT <span class="at">const</span>&amp; begin iteratorT <span class="at">const</span>&amp; end );</a>
+<a class="sourceLine" id="cb5-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb5-17" data-line-number="17">        <span class="dt">bool</span> compile();</a>
+<a class="sourceLine" id="cb5-18" data-line-number="18">        <span class="dt">bool</span> good()<span class="at">const</span>{ <span class="cf">return</span> <span class="dv">0</span> != <span class="va">m_lex</span>.consumed(); }</a>
+<a class="sourceLine" id="cb5-19" data-line-number="19"></a>
+<a class="sourceLine" id="cb5-20" data-line-number="20">        <span class="kw">protected</span>:</a>
+<a class="sourceLine" id="cb5-21" data-line-number="21">          <span class="dt">lex_basic_type</span> <span class="va">m_lex</span>; <span class="co">//!&lt; exposition only</span></a>
+<a class="sourceLine" id="cb5-22" data-line-number="22">       };</a></code></pre></div>
+<h4 id="iii.2.1.b.--conditions">III.2.1.B.- Conditions</h4>
+<ul>
+<li><code>void push( regex_type const&amp;, action_type const&amp;)</code>
+<ul>
+<li>description: associate lambda to given <code>regex</code>. Just push in to internal list.</li>
+<li>pre-con: same as <code>vector&lt;regex_type&gt;::push_back</code>
+<ul>
+<li>effect: <code>good()</code> will return <code>false</code>.</li>
+</ul></li>
+<li>complexity: constant.</li>
+</ul></li>
+<li><code>iteratorT parse( iteratorT const&amp; begin, iteratorT const&amp; end )</code>
+<ul>
+<li>description: parse input sequence given by two iterators and call appropriate lambda.</li>
+<li>complexity: linear.</li>
+</ul></li>
+<li><code>void clear();</code>
+<ul>
+<li>description: remove all regex ( and lambdas ) from internal lists. Allow instance to be reused.</li>
+<li>complexity: implementation defined</li>
+<li>pre-con: Irrelevant.
+<ul>
+<li>effect: same as <code>lex_basic_type::clear()</code></li>
+</ul></li>
+</ul></li>
+<li><code>bool compile();</code>
+<ul>
+<li>note: same as <code>lex_basic_type::compile</code></li>
+</ul></li>
+<li><code>good()</code>
+<ul>
+<li>note: same as <code>lex_basic_type::good</code></li>
+</ul></li>
+</ul>
+<h4 id="iii.2.1.b.--examples">III.2.1.B.- Examples</h4>
+<h6 id="iii.2.1.b.-.--make-instance">III.2.1.B.-.- Make instance</h6>
+<p>Just make one instance of <code>lex_lambda</code> for <code>char</code> type.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb6-1" data-line-number="1">    <span class="kw">typedef</span>  <span class="bu">std::</span>lex_lambda&lt;<span class="dt">char</span>&gt; <span class="dt">cllex_t</span>;</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">    <span class="dt">cllex_t</span> l;</a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">    <span class="dt">yacc_t</span> y;</a></code></pre></div>
+<h5 id="iii.2.1.b.-.--fill-with-information">III.2.1.B.-.- Fill with information</h5>
+<p>Parse stream that contains lines of comma separated numbers.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb7-1" data-line-number="1">    l.push( <span class="bu">std::</span>regex(<span class="st">&quot;[0-9]+&quot;</span>), [&amp;y](<span class="dt">cllex_t</span>::<span class="dt">match_type</span> <span class="at">const</span>&amp; m)-&gt;<span class="dt">void</span>{ y.eat(<span class="dv">0</span>); } );</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">    l.push( <span class="bu">std::</span>regex(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)    , [&amp;y](<span class="dt">cllex_t</span>::<span class="dt">match_type</span> <span class="at">const</span>&amp; m)-&gt;<span class="dt">void</span>{ y.eat(<span class="dv">1</span>); } );</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">    l.push( <span class="bu">std::</span>regex(<span class="st">&quot;,&quot;</span>)     , [&amp;y](<span class="dt">cllex_t</span>::<span class="dt">match_type</span> <span class="at">const</span>&amp; m)-&gt;<span class="dt">void</span>{ y.eat(<span class="dv">2</span>); } );</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">    l.compile();</a></code></pre></div>
+<h6 id="iii.2.1.b.-.--parsing">III.2.1.B.-.- Parsing</h6>
+<p>Do everything automatically.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb8-1" data-line-number="1">    <span class="bu">std::</span>ifstream ifs0( <span class="st">&quot;some-file.txt&quot;</span> );</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">    l.parse( <span class="bu">std::</span>istream_iterator( ifs0 ), <span class="bu">std::</span>istream_iterator() );</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">    <span class="bu">std::</span>ifstream ifs1( <span class="st">&quot;other-file.txt&quot;</span> );</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">    l.parse( <span class="bu">std::</span>istream_iterator( ifs1 ), <span class="bu">std::</span>istream_iterator() );</a></code></pre></div>
+<h4 id="iii.2.1.c-range-adapter">III.2.1.C Range adapter</h4>
+<h4 id="iii.2.1.c.a-description">III.2.1.C.a Description</h4>
+<p>If there is a need for iterating by using range-based loop. <code>token_iterator</code> will make something able to iterate by using range-based for loop. Implementation might be by using function or class.</p>
+<h4 id="iii.2.1.c.b-possible-definition">III.2.1.C.b (Possible) Definition</h4>
+<p>In here possible definition is given as <code>class</code>. Implementation can make this as function also if more feasible.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb9-1" data-line-number="1">    <span class="kw">template</span>&lt; <span class="kw">typename</span> iteratorT, <span class="kw">typename</span> charT, <span class="kw">typename</span> traits = regex_traits&lt;charT&gt;  &gt;</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">     <span class="kw">class</span> token_iterator</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">      {</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">       <span class="kw">public</span>:</a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">       <span class="kw">typedef</span> __implementation-defined__ <span class="dt">iterator_type</span>;</a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">       token_iterator( iteratorT <span class="at">const</span>&amp; begin, iteratorT <span class="at">const</span>&amp; end, lex_simple&lt;charT, traits &gt; &amp;l );</a>
+<a class="sourceLine" id="cb9-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb9-8" data-line-number="8">       <span class="dt">iterator_type</span> begin();</a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">       <span class="dt">iterator_type</span> end();</a>
+<a class="sourceLine" id="cb9-10" data-line-number="10">      };</a></code></pre></div>
+<h4 id="iii.2.1.c.c-example">III.2.1.C.c Example</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb10-1" data-line-number="1">    <span class="kw">typedef</span>  <span class="bu">std::</span>lex_simple&lt;<span class="dt">char</span>&gt; <span class="dt">clex_t</span>;</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">    <span class="dt">clex_t</span> l;</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;[0-9]+&quot;</span>) );</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)     );</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;,&quot;</span>)      );</a>
+<a class="sourceLine" id="cb10-6" data-line-number="6">    l.compile();</a>
+<a class="sourceLine" id="cb10-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb10-8" data-line-number="8">    <span class="dt">yacc_t</span> y;</a>
+<a class="sourceLine" id="cb10-9" data-line-number="9">    <span class="bu">std::</span>vector&lt;<span class="dt">char</span>&gt; v;</a>
+<a class="sourceLine" id="cb10-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb10-11" data-line-number="11">    <span class="cf">for</span>( <span class="kw">auto</span> token : token_iterator( v.begin(), v.end(), l ) )</a>
+<a class="sourceLine" id="cb10-12" data-line-number="12">     {</a>
+<a class="sourceLine" id="cb10-13" data-line-number="13">      y.accept( token )</a>
+<a class="sourceLine" id="cb10-14" data-line-number="14">      <span class="bu">std::</span>cout &lt;&lt; token &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb10-15" data-line-number="15">     }</a></code></pre></div>
+<h1 id="iv.-summary-of-options">IV. Summary of options</h1>
+<ul>
+<li>{options:[lex_simple-name:lex|flex|Lex|lex_basic]}.<br />
+Just name of class.</li>
+<li>{options:[eat-one-name:eat|parse]}<br />
+This is minor issues. I use <code>eat</code> just to make difference from <code>parse</code>.</li>
+<li>{options:[match_type:string|match_results|vector|tuple&lt;size_t,size_t,string&gt;|…]}<br />
+Not so minor issue. For diagnostic purpose sometimes we really need begin/end of parsed token.</li>
+<li>{options:[lex_lambda-name:lex_lambda|…]}<br />
+Another minor issue.</li>
+</ul>
+<h1 id="iv.-design-decisions">IV. Design Decisions</h1>
+<p>Main goal is to make number of member functions of classes as small as possible.<br />
+Classes are designed in manner that is possible to easy connect with <code>yacc</code>-like features.</p>
+<ul>
+<li>No iteration or deleting of pushed regular expressions?<br />
+This will make this library more complicate. Focus is on parsing not on container maintenance. If desired this functionality can be easily added. <code>lex_basic::push</code> already return number, <code>lex_basic::erase( size_t )</code> this is like opposite of iterator idea. Tendency is to erase regex associate to token and this will be forced explicitly through <code>size_t</code>.</li>
+<li><p><code>size_t</code> vs. <code>enum</code> for token type.<br />
+Adding <code>enum</code> as custom token numbering will increase parameter list of <code>lex_lambda</code>. Number of temple parameter is too large in <code>lex_lambda</code>. If added to lex_basic this will have domino effect to <code>lex_lambda</code>.</p>
+<p>Here is obvious benefit of token being<code>enum</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb11-1" data-line-number="1">  <span class="kw">enum</span> CSVToken{ FIELD, COMMA, NEWL };</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">  lex_basic&lt; <span class="dt">char</span>, CSVToken &gt; l1; <span class="co">//!&lt; Traits and allocator are default</span></a>
+<a class="sourceLine" id="cb11-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb11-4" data-line-number="4">  yacc&lt;CVSToken&gt; y1;</a>
+<a class="sourceLine" id="cb11-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb11-6" data-line-number="6">  <span class="kw">enum</span> SpaceSVToken{ FIELD, SPACE, NEWL };</a>
+<a class="sourceLine" id="cb11-7" data-line-number="7">  lex_basic&lt;<span class="dt">char</span>,SpaceSVToken &gt; l2;</a>
+<a class="sourceLine" id="cb11-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb11-9" data-line-number="9">  yacc&lt;SpaceSVToken&gt; y2;</a>
+<a class="sourceLine" id="cb11-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb11-11" data-line-number="11">  y1.eat( l2.token() ); <span class="co">//!&lt; Error!!</span></a></code></pre></div></li>
+</ul>
+<h1 id="v.-impact-on-the-standard">V. Impact On the Standard</h1>
+<ul>
+<li><p>Core<br />
+None. This is library level.</p></li>
+<li><p>Library<br />
+None. This is new feature.</p></li>
+<li><p>Existing code<br />
+None. New class will be under <code>std</code> namespace.</p></li>
+</ul>
+<h1 id="vi.-links">VI. Links</h1>
+<ol type="1">
+<li><a href="https://en.wikipedia.org/wiki/Chomsky_hierarchy">Chomsky hierarchy</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Lex_%28software%29">Lex</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Regular_grammar">Regular Grammar</a></li>
+</ol>

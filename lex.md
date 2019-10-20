@@ -37,14 +37,22 @@ Dejan D.M. Milosavljevic
 
 # III. Solutions
 ## III.1. Description
-  Add well know Lex. See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
+  Add well know Lex. \
+  See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
 
 ## III.2. Classes
    The classes.
 
 ### III.2.1 Simple lex
-   Imperative is that final code must be fast as possible avoiding everything what slowing down execution e.g. lambda execution, character counting. 
+   Imperative is that final code must be fast as possible avoiding everything what slowing down execution paring process.
+   Send character one by one to `lex`. When lex discover unique token function `lex:token` will return number different than `lex::size()`.
    Only output is newly discovered token.
+   In here it is utilized:
+  - avoid call of `vector::operator[]`.
+  - avoid call of lambda.
+  - direct pass of token to other parties.
+  - avoid character counting.
+  - avoid assembling value of token in to std::string
 
 #### III.2.1.A Simple
 
@@ -78,39 +86,39 @@ Dejan D.M. Milosavljevic
   - `size_type push( regex_type const& )`
     - description: Add regular expression in internal list
     - complexity: same as `vector<regex_type>::push_back`
-    - pre-con: consumed() return non-zero;
+    - pre-con: `consumed()` return non-zero;
       - effect: return number same as size()
-    - pre-con: consumed() return zero;
-      - effect: size() will increase for one
+    - pre-con: `consumed()` return zero;
+      - effect: `size()` will increase for one
       - effect: return value is equal to `size() -1`.
       - effect: if some eaten sequence match this regular expression `token` will return number returned by `push`
 
  - `size_type size()const`
    - description: return number of pushed regular expression
    - complexity: same as vector<regex_type>::size
-   - pre-con: Does not matter.
+   - pre-con: Irrelevant.
    - effect: No change
 
  - `void clear();`
    - description: remove all regex from internal lists
-   - complexity: implementation defined
-   - pre-con: Does not matter.
-     - effect: consumed() will return -1
-     - effect: size() will return 0
-     - effect: token() will return 0
-     - effect: eat() will return `false`
-     - effect: compile() will return `false`
+   - complexity: implementation defined.
+   - pre-con: Irrelevant.
+     - effect: `consumed()` will return -1
+     - effect: `size(`) will return 0
+     - effect: `token()` will return 0
+     - effect: `eat()` will return `false`
+     - effect: `compile() will return `false`
 
  - `bool compile();`
       - Description: prepare internal data so the parsing can begin
        - complexity: implementation defined
-      - pre-con: Does not matter.
+      - pre-con: Irrelevant.
         - effect: `consumed()` will return 0.
 
  - `int consumed()const;`
       - Description: return number of successfully processed characters.
-      - complexity: constant
-      - pre-con: nothing
+      - complexity: constant.
+      - pre-con: Irrelevant.
         - effect: return negative  - can not parse,
         - effect: return  zero     - ready to parse
         - effect: return  positive - number of parsed characters.
@@ -125,7 +133,7 @@ Dejan D.M. Milosavljevic
 
     `bool eat( char_type const& c );`
       - Description: Process given character by changing internal state.
-      - Complexity: constant
+      - Complexity: constant.
       -  pre-con: `consumed()` is zero or positive .
        - effect: return `false`. Supplied character rejected. Internal state is unchanged. Can proceed with new character.
       -  pre-con: `consumed()` is negative.
@@ -133,10 +141,10 @@ Dejan D.M. Milosavljevic
 
  - `bool flush();`
       - Description: Force internal state that is no more input and set internal state so `token()` may return value different than `size()`
-      - Complexity: constant
+      - Complexity: constant.
       -  pre-con: `consumed()` is zero or positive.
         - effect: return `true`;
-        - effect: `consumed()` is zero
+        - effect: `consumed()` is zero.
         - effect: `token()` may return value less than `size()`.
       - pre-con: `consumed()` is negative.
         -effect: return `false`;
@@ -150,7 +158,7 @@ Dejan D.M. Milosavljevic
         - effect: return value is less than `size()`
           - note: have unique sequence that match only one regular expression.
           - note: waiting for more character.
-      - pre-con: `consumed()` is negative
+      - pre-con: `consumed()` is negative.
         - effect:  return `size()`
 
 ##### III.2.1.A.- Examples
@@ -167,7 +175,7 @@ Just make one instance of `lex` for `char` type.
 ```
 
 ###### III.2.1.A.-.- Fill with information
-Parse stream that contains lines of comma separated numbers.
+Exect stream that contains lines of comma separated numbers with end of line.
 
 ``` c++
     l.push( clex_t::regex_type("[0-9]+") );
@@ -177,14 +185,7 @@ Parse stream that contains lines of comma separated numbers.
 ```
 
 ###### III.2.1.A.-.- Parsing
-   In this version `lex` does not have ability to call lambda. It is up to user to take some action when token is parsed.
-   Send character one by one to `lex`. When lex discover unique token function `lex:token` will return number different than `lex::size()`.
-
-   In here it is utilized:
-  - avoid call of `vector::operator[]`.
-  - avoid call of lambda.
-  - direct pass of token to other parties.
-
+   Pares and pass
 ```c++
     while( false == ifs.eof() )
     {
@@ -204,14 +205,14 @@ Parse stream that contains lines of comma separated numbers.
                 case( 1 ): std::cout << "new-line";  y.accept(1); break;
                 case( 2 ): std::cout << "separator"; y.accept(2); break;
             }
-       }
+        }
     }
 ```
 
 #### III.2.1.B Lambda
+   Lambda in the best. Offers rapid code development and flexibility of maintenance.
 
 #### 2III.1.B.- Definition
-   Lambda in the best. Offers rapid code development and flexibility in maintenance.
 
 ```c++
     template < class charT, class traits = regex_traits<charT>, class Alloc = allocator<charT> >
@@ -246,21 +247,21 @@ Parse stream that contains lines of comma separated numbers.
         - effect: `good()` will return `false`.
       - complexity: constant.
 
- - `iteratorT parse( iteratorT const& begin iteratorT const& end )`
-      - description: parse input stream and call appropriate lambda.
+ - `iteratorT parse( iteratorT const& begin, iteratorT const& end )`
+      - description: parse input sequence given by two iterators and call appropriate lambda.
       - complexity: linear.
 
  - `void clear();`
-      - description: remove all regex from internal lists. Allow instance to be reused.
+      - description: remove all regex ( and lambdas ) from internal lists. Allow instance to be reused.
       - complexity: implementation defined
-      - pre-con: Does not matter.
-        - effect: same as `lex_t::clear()`
+      - pre-con: Irrelevant.
+        - effect: same as `lex_basic_type::clear()`
 
- - `lex_t::compile`
-     - note: same as `lex_t::compile`
+ - `bool compile();`
+     - note: same as `lex_basic_type::compile`
 
  - `good()`
-     - note: same as `lex_t::good`
+     - note: same as `lex_basic_type::good`
 
 #### III.2.1.B.- Examples
 
@@ -275,7 +276,7 @@ Just make one instance of `lex_lambda` for `char` type.
 ```
 
 ##### III.2.1.B.-.- Fill with information
-Parse stream that contains lines of comma separated numbers.
+Expect stream that contains lines of comma separated numbers.
 
 ``` c++
     l.push( std::regex("[0-9]+"), [&y](cllex_t::match_type const& m)->void{ y.eat(0); } );
@@ -298,8 +299,8 @@ Parse stream that contains lines of comma separated numbers.
 #### III.2.1.C Range adapter
 
 #### III.2.1.C.a Description
-   If there is a need for iterating by using range-based loop.
-   `token_iterator` will make something able to iterate by using range-based for loop.
+   `token_iterator` ofer ability to iterate by using range-based for loop.
+   Main benefit is easy use of `lex_simple` and fast execution.
    Implementation might be by using function or class.
 
 #### III.2.1.C.b (Possible) Definition
@@ -319,7 +320,8 @@ Parse stream that contains lines of comma separated numbers.
 ```
 
 #### III.2.1.C.c Example
-
+ Example given in III.2.1.A.-.- can be rewritten in form like
+ 
 ```c++
     typedef  std::lex_simple<char> clex_t;
     clex_t l;
@@ -333,8 +335,12 @@ Parse stream that contains lines of comma separated numbers.
 
     for( auto token : token_iterator( v.begin(), v.end(), l ) )
      {
-      y.accept( token )
-      std::cout << token << std::endl;
+      switch( token )
+       {
+        case( 0 ): std::cout << "number";    y.accept(0); break;
+        case( 1 ): std::cout << "new-line";  y.accept(1); break;
+        case( 2 ): std::cout << "separator"; y.accept(2); break;
+       }
      }
 ```
 
