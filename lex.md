@@ -185,7 +185,7 @@ Exect stream that contains lines of comma separated numbers.
 ```
 
 ##### III.2.1.C.- Parsing
-   Pares and pass
+   Parse and pass
 ```c++
     while( false == ifs.eof() )
     {
@@ -279,9 +279,9 @@ Just make one instance of `lex_lambda` for `char` type.
 Expect stream that contains lines of comma separated numbers.
 
 ``` c++
-    l.push( std::regex("[0-9]+"), [&y](cllex_t::match_type const& m)->void{ y.eat(0); } );
-    l.push( std::regex("\n")    , [&y](cllex_t::match_type const& m)->void{ y.eat(1); } );
-    l.push( std::regex(",")     , [&y](cllex_t::match_type const& m)->void{ y.eat(2); } );
+    l.push( std::regex("[0-9]+"), [&y](cllex_t::match_type const& m)->void{ y.accept(0); } );
+    l.push( std::regex("\n")    , [&y](cllex_t::match_type const& m)->void{ y.accept(1); } );
+    l.push( std::regex(",")     , [&y](cllex_t::match_type const& m)->void{ y.accept(2); } );
     l.compile();
 ```
 
