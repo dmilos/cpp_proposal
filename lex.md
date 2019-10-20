@@ -44,9 +44,11 @@ Dejan D.M. Milosavljevic
    The classes.
 
 ### III.2.1 Simple lex
-   Imperative is that final code must be fast as possible avoiding everything what slowing down execution paring process.
-   Send character one by one to `lex`. When lex discover unique token function `lex:token` will return number different than `lex::size()`.
-   Only output is newly discovered token.
+   Imperative is that final code must be fast as possible avoiding everything what slowing down execution paring process.\
+   Send character one by one to `lex`.\
+   When lex discover unique token function `lex:token` will return number different than `lex::size()`.\   
+   
+   Only output is newly discovered token.\
    In here it is utilized:
   - avoid call of `vector::operator[]`.
   - avoid call of lambda.
@@ -175,7 +177,7 @@ Just make one instance of `lex` for `char` type.
 ```
 
 ###### III.2.1.A.-.- Fill with information
-Exect stream that contains lines of comma separated numbers with end of line.
+Exect stream that contains lines of comma separated numbers.
 
 ``` c++
     l.push( clex_t::regex_type("[0-9]+") );
