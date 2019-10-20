@@ -34,10 +34,12 @@ See: <a href="https://en.wikipedia.org/wiki/Lex_%28software%29">Lex</a></p>
 <h2 id="iii.2.-classes">III.2. Classes</h2>
 <p>The classes.</p>
 <h3 id="iii.2.1-simple-lex">III.2.1 Simple lex</h3>
-<p>Imperative is that final code must be fast as possible avoiding everything what slowing down execution e.g. lambda execution, character counting.<br />
+<p>Imperative is that final code must be fast as possible avoiding everything what slowing down execution paring process.<br />
+Send character one by one to <code>lex</code>.<br />
+When lex discover unique token function <code>lex:token</code> will return number different than <code>lex::size()</code>. <br />
 Only output is newly discovered token.</p>
-<h4 id="iii.2.1.a-simple">III.2.1.A Simple</h4>
-<h5 id="iii.2.1.a.--definition">III.2.1.A.- definition</h5>
+<p>In here it is utilized: - avoid call of <code>vector::operator[]</code>. - avoid call of lambda. - direct pass of token to other parties. - avoid character counting. - avoid assembling value of token in to std::string</p>
+<h4 id="iii.2.1.a-definition">III.2.1.A definition</h4>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb1-1" data-line-number="1">    <span class="kw">template</span> &lt; <span class="kw">class</span> charT, <span class="kw">class</span> traits = regex_traits&lt;charT&gt; &gt;</a>
 <a class="sourceLine" id="cb1-2" data-line-number="2">      <span class="kw">class</span> lex_simple  <span class="co">//!&lt; {options:[lex_simple-name:lex|flex|Lex|lex_basic]}</span></a>
 <a class="sourceLine" id="cb1-3" data-line-number="3">       {</a>
@@ -58,7 +60,7 @@ Only output is newly discovered token.</p>
 <a class="sourceLine" id="cb1-18" data-line-number="18">        <span class="dt">bool</span> eat( <span class="dt">char_type</span> <span class="at">const</span>&amp; c ); <span class="co">//!&lt; {options:[eat-one-name:eat|parse]}</span></a>
 <a class="sourceLine" id="cb1-19" data-line-number="19">        <span class="dt">size_type</span> token();</a>
 <a class="sourceLine" id="cb1-20" data-line-number="20">       };</a></code></pre></div>
-<h5 id="iii.2.1.a.--conditions">III.2.1.A.- Conditions</h5>
+<h4 id="iii.2.1.b-conditions">III.2.1.B Conditions</h4>
 <ul>
 <li><code>size_type push( regex_type const&amp; )</code>
 <ul>
@@ -159,23 +161,22 @@ Only output is newly discovered token.</p>
 </ul></li>
 </ul></li>
 </ul>
-<h5 id="iii.2.1.a.--examples">III.2.1.A.- Examples</h5>
-<h6 id="iii.2.1.a.-.--make-instance">III.2.1.A.-.- Make instance</h6>
+<h4 id="iii.2.1.c-examples">III.2.1.C Examples</h4>
+<h5 id="iii.2.1.c.--make-instance">III.2.1.C.- Make instance</h5>
 <p>Just make one instance of <code>lex</code> for <code>char</code> type.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb2-1" data-line-number="1">    <span class="kw">typedef</span>  <span class="bu">std::</span>lex_simple&lt;<span class="dt">char</span>&gt; <span class="dt">clex_t</span>;</a>
 <a class="sourceLine" id="cb2-2" data-line-number="2">    <span class="dt">clex_t</span> l;</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"></a>
 <a class="sourceLine" id="cb2-4" data-line-number="4">    <span class="co">//!&lt; Important in manner that `lex` should be able to easily cooperate with classes that is able to handle Type-2 or Type-3 grammars.</span></a>
 <a class="sourceLine" id="cb2-5" data-line-number="5">    <span class="dt">yacc_t</span> y;</a></code></pre></div>
-<h6 id="iii.2.1.a.-.--fill-with-information">III.2.1.A.-.- Fill with information</h6>
-<p>Parse stream that contains lines of comma separated numbers.</p>
+<h5 id="iii.2.1.c.--fill-with-information">III.2.1.C.- Fill with information</h5>
+<p>Exect stream that contains lines of comma separated numbers.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb3-1" data-line-number="1">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;[0-9]+&quot;</span>) );</a>
 <a class="sourceLine" id="cb3-2" data-line-number="2">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)     );</a>
 <a class="sourceLine" id="cb3-3" data-line-number="3">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;,&quot;</span>)      );</a>
 <a class="sourceLine" id="cb3-4" data-line-number="4">    l.compile();</a></code></pre></div>
-<h6 id="iii.2.1.a.-.--parsing">III.2.1.A.-.- Parsing</h6>
-<p>In this version <code>lex</code> does not have ability to call lambda. It is up to user to take some action when token is parsed. Send character one by one to <code>lex</code>. When lex discover unique token function <code>lex:token</code> will return number different than <code>lex::size()</code>.</p>
-<p>In here it is utilized: - avoid call of <code>vector::operator[]</code>. - avoid call of lambda. - direct pass of token to other parties. - avoid character counting. - avoid assembling value of token in to std::string</p>
+<h5 id="iii.2.1.c.--parsing">III.2.1.C.- Parsing</h5>
+<p>Pares and pass</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb4-1" data-line-number="1">    <span class="cf">while</span>( <span class="kw">false</span> == ifs.eof() )</a>
 <a class="sourceLine" id="cb4-2" data-line-number="2">    {</a>
 <a class="sourceLine" id="cb4-3" data-line-number="3">        <span class="cf">if</span>( <span class="kw">false</span> == l.eat( ifs.get() ) )</a>
@@ -196,9 +197,9 @@ Only output is newly discovered token.</p>
 <a class="sourceLine" id="cb4-18" data-line-number="18">            }</a>
 <a class="sourceLine" id="cb4-19" data-line-number="19">        }</a>
 <a class="sourceLine" id="cb4-20" data-line-number="20">    }</a></code></pre></div>
-<h4 id="iii.2.1.b-lambda">III.2.1.B Lambda</h4>
-<h4 id="iii.1.b.--definition">2III.1.B.- Definition</h4>
+<h3 id="iii.2.2-lambda">III.2.2 Lambda</h3>
 <p>Lambda in the best. Offers rapid code development and flexibility of maintenance.</p>
+<h4 id="iii.2.a-definition">2III.2.A Definition</h4>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb5-1" data-line-number="1">    <span class="kw">template</span> &lt; <span class="kw">class</span> charT, <span class="kw">class</span> traits = regex_traits&lt;charT&gt;, <span class="kw">class</span> Alloc = allocator&lt;charT&gt; &gt;</a>
 <a class="sourceLine" id="cb5-2" data-line-number="2">      <span class="kw">class</span> lex_lambda <span class="co">//!&lt; {options:[lex_lambda-name:lex_lambda|...]}</span></a>
 <a class="sourceLine" id="cb5-3" data-line-number="3">       {</a>
@@ -221,7 +222,7 @@ Only output is newly discovered token.</p>
 <a class="sourceLine" id="cb5-20" data-line-number="20">        <span class="kw">protected</span>:</a>
 <a class="sourceLine" id="cb5-21" data-line-number="21">          <span class="dt">lex_basic_type</span> <span class="va">m_lex</span>; <span class="co">//!&lt; exposition only</span></a>
 <a class="sourceLine" id="cb5-22" data-line-number="22">       };</a></code></pre></div>
-<h4 id="iii.2.1.b.--conditions">III.2.1.B.- Conditions</h4>
+<h4 id="iii.2.2.b-conditions">III.2.2.B Conditions</h4>
 <ul>
 <li><code>void push( regex_type const&amp;, action_type const&amp;)</code>
 <ul>
@@ -255,30 +256,30 @@ Only output is newly discovered token.</p>
 <li>note: same as <code>lex_basic_type::good</code></li>
 </ul></li>
 </ul>
-<h4 id="iii.2.1.b.--examples">III.2.1.B.- Examples</h4>
-<h6 id="iii.2.1.b.-.--make-instance">III.2.1.B.-.- Make instance</h6>
+<h4 id="iii.2.2.c-examples">III.2.2.C Examples</h4>
+<h5 id="iii.2.2.c.--make-instance">III.2.2.C.- Make instance</h5>
 <p>Just make one instance of <code>lex_lambda</code> for <code>char</code> type.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb6-1" data-line-number="1">    <span class="kw">typedef</span>  <span class="bu">std::</span>lex_lambda&lt;<span class="dt">char</span>&gt; <span class="dt">cllex_t</span>;</a>
 <a class="sourceLine" id="cb6-2" data-line-number="2">    <span class="dt">cllex_t</span> l;</a>
 <a class="sourceLine" id="cb6-3" data-line-number="3"></a>
 <a class="sourceLine" id="cb6-4" data-line-number="4">    <span class="dt">yacc_t</span> y;</a></code></pre></div>
-<h5 id="iii.2.1.b.-.--fill-with-information">III.2.1.B.-.- Fill with information</h5>
-<p>Parse stream that contains lines of comma separated numbers.</p>
+<h5 id="iii.2.2.c.--fill-with-information">III.2.2.C.- Fill with information</h5>
+<p>Expect stream that contains lines of comma separated numbers.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb7-1" data-line-number="1">    l.push( <span class="bu">std::</span>regex(<span class="st">&quot;[0-9]+&quot;</span>), [&amp;y](<span class="dt">cllex_t</span>::<span class="dt">match_type</span> <span class="at">const</span>&amp; m)-&gt;<span class="dt">void</span>{ y.eat(<span class="dv">0</span>); } );</a>
 <a class="sourceLine" id="cb7-2" data-line-number="2">    l.push( <span class="bu">std::</span>regex(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)    , [&amp;y](<span class="dt">cllex_t</span>::<span class="dt">match_type</span> <span class="at">const</span>&amp; m)-&gt;<span class="dt">void</span>{ y.eat(<span class="dv">1</span>); } );</a>
 <a class="sourceLine" id="cb7-3" data-line-number="3">    l.push( <span class="bu">std::</span>regex(<span class="st">&quot;,&quot;</span>)     , [&amp;y](<span class="dt">cllex_t</span>::<span class="dt">match_type</span> <span class="at">const</span>&amp; m)-&gt;<span class="dt">void</span>{ y.eat(<span class="dv">2</span>); } );</a>
 <a class="sourceLine" id="cb7-4" data-line-number="4">    l.compile();</a></code></pre></div>
-<h6 id="iii.2.1.b.-.--parsing">III.2.1.B.-.- Parsing</h6>
+<h5 id="iii.2.2.c.--parsing">III.2.2.C.- Parsing</h5>
 <p>Do everything automatically.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb8-1" data-line-number="1">    <span class="bu">std::</span>ifstream ifs0( <span class="st">&quot;some-file.txt&quot;</span> );</a>
 <a class="sourceLine" id="cb8-2" data-line-number="2">    l.parse( <span class="bu">std::</span>istream_iterator( ifs0 ), <span class="bu">std::</span>istream_iterator() );</a>
 <a class="sourceLine" id="cb8-3" data-line-number="3"></a>
 <a class="sourceLine" id="cb8-4" data-line-number="4">    <span class="bu">std::</span>ifstream ifs1( <span class="st">&quot;other-file.txt&quot;</span> );</a>
 <a class="sourceLine" id="cb8-5" data-line-number="5">    l.parse( <span class="bu">std::</span>istream_iterator( ifs1 ), <span class="bu">std::</span>istream_iterator() );</a></code></pre></div>
-<h4 id="iii.2.1.c-range-adapter">III.2.1.C Range adapter</h4>
-<h4 id="iii.2.1.c.a-description">III.2.1.C.a Description</h4>
-<p>If there is a need for iterating by using range-based loop. <code>token_iterator</code> will make something able to iterate by using range-based for loop. Implementation might be by using function or class.</p>
-<h4 id="iii.2.1.c.b-possible-definition">III.2.1.C.b (Possible) Definition</h4>
+<h4 id="iii.2.3-range-adapter">III.2.3 Range adapter</h4>
+<h4 id="iii.2.3.a-description">III.2.3.A Description</h4>
+<p><code>token_iterator</code> ofer ability to iterate by using range-based for loop. Main benefit is easy use of <code>lex_simple</code> and fast execution. Implementation might be by using function or class.</p>
+<h4 id="iii.2.3.b-possible-definition">III.2.3.B (Possible) Definition</h4>
 <p>In here possible definition is given as <code>class</code>. Implementation can make this as function also if more feasible.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb9-1" data-line-number="1">    <span class="kw">template</span>&lt; <span class="kw">typename</span> iteratorT, <span class="kw">typename</span> charT, <span class="kw">typename</span> traits = regex_traits&lt;charT&gt;  &gt;</a>
 <a class="sourceLine" id="cb9-2" data-line-number="2">     <span class="kw">class</span> token_iterator</a>
@@ -290,7 +291,8 @@ Only output is newly discovered token.</p>
 <a class="sourceLine" id="cb9-8" data-line-number="8">       <span class="dt">iterator_type</span> begin();</a>
 <a class="sourceLine" id="cb9-9" data-line-number="9">       <span class="dt">iterator_type</span> end();</a>
 <a class="sourceLine" id="cb9-10" data-line-number="10">      };</a></code></pre></div>
-<h4 id="iii.2.1.c.c-example">III.2.1.C.c Example</h4>
+<h4 id="iii.2.1.d-example">III.2.1.D Example</h4>
+<p>Example given in III.2.1.A.-.- can be rewritten in form like</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb10-1" data-line-number="1">    <span class="kw">typedef</span>  <span class="bu">std::</span>lex_simple&lt;<span class="dt">char</span>&gt; <span class="dt">clex_t</span>;</a>
 <a class="sourceLine" id="cb10-2" data-line-number="2">    <span class="dt">clex_t</span> l;</a>
 <a class="sourceLine" id="cb10-3" data-line-number="3">    l.push( <span class="dt">clex_t</span>::<span class="dt">regex_type</span>(<span class="st">&quot;[0-9]+&quot;</span>) );</a>
@@ -303,9 +305,13 @@ Only output is newly discovered token.</p>
 <a class="sourceLine" id="cb10-10" data-line-number="10"></a>
 <a class="sourceLine" id="cb10-11" data-line-number="11">    <span class="cf">for</span>( <span class="kw">auto</span> token : token_iterator( v.begin(), v.end(), l ) )</a>
 <a class="sourceLine" id="cb10-12" data-line-number="12">     {</a>
-<a class="sourceLine" id="cb10-13" data-line-number="13">      y.accept( token )</a>
-<a class="sourceLine" id="cb10-14" data-line-number="14">      <span class="bu">std::</span>cout &lt;&lt; token &lt;&lt; <span class="bu">std::</span>endl;</a>
-<a class="sourceLine" id="cb10-15" data-line-number="15">     }</a></code></pre></div>
+<a class="sourceLine" id="cb10-13" data-line-number="13">      <span class="cf">switch</span>( token )</a>
+<a class="sourceLine" id="cb10-14" data-line-number="14">       {</a>
+<a class="sourceLine" id="cb10-15" data-line-number="15">        <span class="cf">case</span>( <span class="dv">0</span> ): <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;number&quot;</span>;    y.accept(<span class="dv">0</span>); <span class="cf">break</span>;</a>
+<a class="sourceLine" id="cb10-16" data-line-number="16">        <span class="cf">case</span>( <span class="dv">1</span> ): <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;new-line&quot;</span>;  y.accept(<span class="dv">1</span>); <span class="cf">break</span>;</a>
+<a class="sourceLine" id="cb10-17" data-line-number="17">        <span class="cf">case</span>( <span class="dv">2</span> ): <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;separator&quot;</span>; y.accept(<span class="dv">2</span>); <span class="cf">break</span>;</a>
+<a class="sourceLine" id="cb10-18" data-line-number="18">       }</a>
+<a class="sourceLine" id="cb10-19" data-line-number="19">     }</a></code></pre></div>
 <h1 id="iv.-summary-of-options">IV. Summary of options</h1>
 <ul>
 <li>{options:[lex_simple-name:lex|flex|Lex|lex_basic]}.<br />

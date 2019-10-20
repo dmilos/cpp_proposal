@@ -56,9 +56,7 @@ Dejan D.M. Milosavljevic
   - avoid character counting.
   - avoid assembling value of token in to std::string
 
-#### III.2.1.A Simple
-
-##### III.2.1.A.- definition
+#### III.2.1.A definition
 
 ```c++
     template < class charT, class traits = regex_traits<charT> >
@@ -83,7 +81,7 @@ Dejan D.M. Milosavljevic
        };
 ```
 
-##### III.2.1.A.- Conditions
+#### III.2.1.B Conditions
 
   - `size_type push( regex_type const& )`
     - description: Add regular expression in internal list
@@ -163,9 +161,9 @@ Dejan D.M. Milosavljevic
       - pre-con: `consumed()` is negative.
         - effect:  return `size()`
 
-##### III.2.1.A.- Examples
+#### III.2.1.C Examples
 
-###### III.2.1.A.-.- Make instance
+##### III.2.1.C.- Make instance
 
 Just make one instance of `lex` for `char` type.
 ```c++
@@ -176,7 +174,7 @@ Just make one instance of `lex` for `char` type.
     yacc_t y;
 ```
 
-###### III.2.1.A.-.- Fill with information
+##### III.2.1.C.- Fill with information
 Exect stream that contains lines of comma separated numbers.
 
 ``` c++
@@ -186,7 +184,7 @@ Exect stream that contains lines of comma separated numbers.
     l.compile();
 ```
 
-###### III.2.1.A.-.- Parsing
+##### III.2.1.C.- Parsing
    Pares and pass
 ```c++
     while( false == ifs.eof() )
@@ -211,10 +209,10 @@ Exect stream that contains lines of comma separated numbers.
     }
 ```
 
-#### III.2.1.B Lambda
+### III.2.2 Lambda
    Lambda in the best. Offers rapid code development and flexibility of maintenance.
 
-#### 2III.1.B.- Definition
+#### 2III.2.A Definition
 
 ```c++
     template < class charT, class traits = regex_traits<charT>, class Alloc = allocator<charT> >
@@ -241,7 +239,7 @@ Exect stream that contains lines of comma separated numbers.
        };
 ```
 
-#### III.2.1.B.- Conditions
+#### III.2.2.B Conditions
 
  - `void push( regex_type const&, action_type const&)`
       - description: associate lambda to given `regex`. Just push in to internal list.
@@ -265,9 +263,9 @@ Exect stream that contains lines of comma separated numbers.
  - `good()`
      - note: same as `lex_basic_type::good`
 
-#### III.2.1.B.- Examples
+#### III.2.2.C Examples
 
-###### III.2.1.B.-.- Make instance
+##### III.2.2.C.- Make instance
 
 Just make one instance of `lex_lambda` for `char` type.
 ```c++
@@ -277,7 +275,7 @@ Just make one instance of `lex_lambda` for `char` type.
     yacc_t y;
 ```
 
-##### III.2.1.B.-.- Fill with information
+##### III.2.2.C.- Fill with information
 Expect stream that contains lines of comma separated numbers.
 
 ``` c++
@@ -287,7 +285,7 @@ Expect stream that contains lines of comma separated numbers.
     l.compile();
 ```
 
-###### III.2.1.B.-.- Parsing
+##### III.2.2.C.- Parsing
    Do everything automatically.
 
 ```c++
@@ -298,14 +296,14 @@ Expect stream that contains lines of comma separated numbers.
     l.parse( std::istream_iterator( ifs1 ), std::istream_iterator() );
 ```
 
-#### III.2.1.C Range adapter
+#### III.2.3 Range adapter
 
-#### III.2.1.C.a Description
+#### III.2.3.A Description
    `token_iterator` ofer ability to iterate by using range-based for loop.
    Main benefit is easy use of `lex_simple` and fast execution.
    Implementation might be by using function or class.
 
-#### III.2.1.C.b (Possible) Definition
+#### III.2.3.B (Possible) Definition
    In here possible definition is given as `class`. Implementation can make this as function also if more feasible.
 
 ```c++
@@ -321,7 +319,7 @@ Expect stream that contains lines of comma separated numbers.
       };
 ```
 
-#### III.2.1.C.c Example
+#### III.2.1.D Example
  Example given in III.2.1.A.-.- can be rewritten in form like
  
 ```c++
