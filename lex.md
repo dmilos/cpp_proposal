@@ -39,7 +39,7 @@ Dejan D.M. Milosavljevic
 # III. Solutions
 ## III.1. Description
   Add well know Lex. \
-  See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
+  See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29) \
   Due to deliberate dependency from `std::regex` compilation will occur in run-time.
 
 ## III.2. Classes
@@ -62,14 +62,14 @@ Dejan D.M. Milosavljevic
 #### III.2.1.A definition
 
 ```c++
-    template < class charT, class traits = regex_traits<charT> >
+    template < class charT, class traits = std::regex_traits<charT> >
       class lex_simple  //!< {options:[lex_simple-name:lex|flex|Lex|lex_basic]}
        {
         public:
           typedef charT char_type;
           typedef std::size_t size_type;
 
-          typedef std::regex<charT, traits > regex_type;
+          typedef std::basic_regex<charT, traits > regex_type;
 
           size_type push( regex_type const& );
           size_type size()const;
@@ -81,7 +81,8 @@ Dejan D.M. Milosavljevic
           bool restart();
 
           bool eat( char_type const& c ); //!< {options:[eat-one-name:eat|parse]}
-          size_type token();
+          bool flush();
+          size_type token()const;
        };
 ```
 
@@ -96,6 +97,7 @@ Dejan D.M. Milosavljevic
       - effect: `size()` will increase for one
       - effect: return value is equal to `size() -1`.
       - effect: if some eaten sequence match this regular expression `token` will return number returned by `push`
+      - effect: `token()` will return `size()`.
 
  - `size_type size()const`
    - description: return number of pushed regular expression
@@ -133,27 +135,34 @@ Dejan D.M. Milosavljevic
       - pre-con: `consumed()` is negative ;
        - effect: return `false`;
       - pre-con: `consumed()` is zero or positive
-        - effect: `consumed()` return true;
+        - effect: `consumed()` return 0;
 
     `bool eat( char_type const& c );`
       - Description: Process given character by changing internal state.
       - Complexity: constant.
-      -  pre-con: `consumed()` is zero or positive .
-       - effect: return `false`. Supplied character rejected. Internal state is unchanged. Can proceed with new character.
       -  pre-con: `consumed()` is negative.
        - effect: return `false`.
+      -  pre-con: `consumed()` is zero or positive .
+       - effect: return `false`.
+        - Can proceed with new character.
+        - Sequence does not match any regex.
+       - effect: return `true`.
+        - Supplied character accepted.
+        - `token()` may return value less than `size()`.
+        - Can proceed with new character.
 
  - `bool flush();`
       - Description: Force internal state that is no more input and set internal state so `token()` may return value different than `size()`
       - Complexity: constant.
-      -  pre-con: `consumed()` is zero or positive.
-        - effect: return `true`;
-        - effect: `consumed()` is zero.
+      -  pre-con: `consumed()` return positive number.
         - effect: `token()` may return value less than `size()`.
-      - pre-con: `consumed()` is negative.
+        - effect: return `true`;
+      -  pre-con: `consumed()` return zero.
+        - effect: `token()` may return value less than `size()`.
+      - pre-con: `consumed()` return negative number.
         -effect: return `false`;
 
- - `size_type token();`
+ - `size_type token()const;`
       - Description: return index of uniquely matched regex
       - complexity: constant
       -pre-con: `consumed()` is zero or positive
@@ -199,7 +208,7 @@ Exect stream that contains lines of comma separated numbers.
         if( true == ifs.eof() )
             l.flush();
 
-        lex_t::size_type t = l.token();
+        clex_t::size_type t = l.token();
         if( l.size() == l.token() )
         {
             // Shorter/Fastest variant but no diagnostics: `y.accept( l.token() );`
@@ -219,13 +228,13 @@ Exect stream that contains lines of comma separated numbers.
 #### 2III.2.A Definition
 
 ```c++
-    template < class charT, class traits = regex_traits<charT>, class Alloc = allocator<charT> >
+    template < class charT, class traits = std::regex_traits<charT>, class Alloc = std::allocator<charT> >
       class lex_lambda //!< {options:[lex_lambda-name:lex_lambda|...]}
        {
         public:
           typedef charT char_type;
-          typedef lex_basic<charT, traits > lex_basic_type;
-          typedef std::regex<character_type, traits> regex_type;
+          typedef lex_simple<charT, traits > lex_basic_type;
+          typedef std::basic_regex<char_type, traits> regex_type;
           typedef std::basic_string< char_type, traits, Alloc > match_type; //{options:[match_type:string|match_results|vector|tuple<size_t,size_t,string>...]}
 
           typedef std::function< void( match_type const& ) > action_type;
@@ -234,7 +243,7 @@ Exect stream that contains lines of comma separated numbers.
           void clear();
 
           template < typename iteratorT >
-           iteratorT parse( iteratorT const& begin iteratorT const& end );
+           iteratorT parse( iteratorT const& begin, iteratorT const& end );
 
           bool compile();
           bool good()const{ return 0 != m_lex.consumed(); }
@@ -295,10 +304,10 @@ Expect stream that contains lines of comma separated numbers.
 
 ```c++
     std::ifstream ifs0( "some-file.txt" );
-    l.parse( std::istream_iterator( ifs0 ), std::istream_iterator() );
+    l.parse( std::istream_iterator<char>( ifs0 ), std::istream_iterator<char>() );
 
     std::ifstream ifs1( "other-file.txt" );
-    l.parse( std::istream_iterator( ifs1 ), std::istream_iterator() );
+    l.parse( std::istream_iterator<char>( ifs1 ), std::istream_iterator<char>() );
 ```
 
 #### III.2.3 Range adapter
@@ -395,7 +404,17 @@ Expect stream that contains lines of comma separated numbers.
      Unfortunately any implementation that satisfies above conditions must relay of specific properties of each compiler vendor.\
      Those specific properties can change from version to version and are very different from vendor to vendor.\
      Any possible implementation by 3rd party will disobey complexity requirements.
-     In sub-folder is implementation that disobey complexity requirements.
+     In sub-folder is implementation that disobey complexity requirements and work only in some specific cases.
+     Example:
+      ```c++
+        std::string input="asdfQQQ";
+        l.push( clex_t::regex_type("asdfQQQ") );
+        l.push( clex_t::regex_type("[a-zA-Z]+") );
+      ```
+       Parsing goes character by character. After parsing of just one character only second regex will match input.
+       Obviously proper match is the first one, if we get other characters.
+
+
 
 # V. Impact On the Standard
   * Core\

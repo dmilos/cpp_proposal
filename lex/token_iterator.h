@@ -10,17 +10,27 @@ namespace std_experimental
    class token_iterator
     {
      public:
-     typedef __implementation-defined__ iterator_type;
+     typedef int iterator_type;
      typedef lex_simple<charT, traits > lex_type;
-     token_iterator( iteratorT const& begin, iteratorT const& end, lex_type &l );
+     token_iterator( iteratorT const& begin, iteratorT const& end, lex_type &l ){}
 
-     iterator_type begin();
-     iterator_type end();
+     iterator_type begin(){ return 0; }
+     iterator_type end(){ return 10;}
     };
-
-   // TODO std::begin()
-   // TODO std::end()
 
  }
 
+  template< typename iteratorT, typename charT, typename traits >
+   typename std_experimental::token_iterator< iteratorT, charT, traits >::iterator_type
+    begin( std_experimental::token_iterator< iteratorT, charT, traits > & ti )
+     {
+      return ti.begin();
+     }
+
+   template< typename iteratorT, typename charT, typename traits >
+   typename std_experimental::token_iterator< iteratorT, charT, traits >::iterator_type
+    end( std_experimental::token_iterator< iteratorT, charT, traits > & ti )
+     {
+      return ti.end();
+     }
 #endif
