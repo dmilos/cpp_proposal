@@ -40,6 +40,7 @@ Dejan D.M. Milosavljevic
 ## III.1. Description
   Add well know Lex. \
   See: [Lex](https://en.wikipedia.org/wiki/Lex_%28software%29)
+  Due to deliberate dependency from `std::regex` compilation will occur in run-time.
 
 ## III.2. Classes
    The classes.
@@ -56,7 +57,7 @@ Dejan D.M. Milosavljevic
   - direct pass of token to other parties.
   - avoid character counting.
   - avoid assembling value of token in to `std::string`
-    - Avoid call of system allocation function 
+    - Avoid call of system allocation function
 
 #### III.2.1.A definition
 
@@ -64,22 +65,23 @@ Dejan D.M. Milosavljevic
     template < class charT, class traits = regex_traits<charT> >
       class lex_simple  //!< {options:[lex_simple-name:lex|flex|Lex|lex_basic]}
        {
-        typedef charT char_type;
-        typedef std::size_t size_type;
+        public:
+          typedef charT char_type;
+          typedef std::size_t size_type;
 
-        typedef std::regex<charT, traits > regex_type;
+          typedef std::regex<charT, traits > regex_type;
 
-        size_type push( regex_type const& );
-        size_type size()const;
+          size_type push( regex_type const& );
+          size_type size()const;
 
-        void clear();
+          void clear();
 
-        bool compile();
-        int  consumed()const;
-        bool restart();
+          bool compile();
+          int  consumed()const;
+          bool restart();
 
-        bool eat( char_type const& c ); //!< {options:[eat-one-name:eat|parse]}
-        size_type token();
+          bool eat( char_type const& c ); //!< {options:[eat-one-name:eat|parse]}
+          size_type token();
        };
 ```
 
@@ -220,21 +222,22 @@ Exect stream that contains lines of comma separated numbers.
     template < class charT, class traits = regex_traits<charT>, class Alloc = allocator<charT> >
       class lex_lambda //!< {options:[lex_lambda-name:lex_lambda|...]}
        {
-        typedef charT char_type;
-        typedef lex_basic<charT, traits > lex_basic_type;
-        typedef std::regex<character_type, traits> regex_type;
-        typedef std::basic_string< char_type, traits, Alloc > match_type; //{options:[match_type:string|match_results|vector|tuple<size_t,size_t,string>...]}
+        public:
+          typedef charT char_type;
+          typedef lex_basic<charT, traits > lex_basic_type;
+          typedef std::regex<character_type, traits> regex_type;
+          typedef std::basic_string< char_type, traits, Alloc > match_type; //{options:[match_type:string|match_results|vector|tuple<size_t,size_t,string>...]}
 
-        typedef std::function< void( match_type const& ) > action_type;
+          typedef std::function< void( match_type const& ) > action_type;
 
-        void push( regex_type const&, action_type const& );
-        void clear();
+          void push( regex_type const&, action_type const& );
+          void clear();
 
-        template < typename iteratorT >
-         iteratorT parse( iteratorT const& begin iteratorT const& end );
+          template < typename iteratorT >
+           iteratorT parse( iteratorT const& begin iteratorT const& end );
 
-        bool compile();
-        bool good()const{ return 0 != m_lex.consumed(); }
+          bool compile();
+          bool good()const{ return 0 != m_lex.consumed(); }
 
         protected:
           lex_basic_type m_lex; //!< exposition only
@@ -301,7 +304,7 @@ Expect stream that contains lines of comma separated numbers.
 #### III.2.3 Range adapter
 
 #### III.2.3.A Description
-   `token_iterator` ofer ability to iterate by using range-based for loop.
+   `token_iterator` ofers ability to iterate by using range-based for loop.
    Main benefit is easy use of `lex_simple` and fast execution.
    Implementation might be by using function or class.
 
@@ -360,10 +363,14 @@ Expect stream that contains lines of comma separated numbers.
   Main goal is to make number of member functions of classes as small as possible.\
   Classes are designed in manner that is possible to easy connect with `yacc`-like features.
 
+  - Run time vs Compile time?\
+    Original lex use compile time compilation. This one relays on `std::regex` which is run time. Direct consequence is that this extension must be run time.
+
   - No iteration or deleting of pushed regular expressions?\
       This will make this library more complicate. Focus is on parsing not on container maintenance. If desired this functionality can be easily added.
      `lex_basic::push` already return number, `lex_basic::erase( size_t )` this is like opposite of iterator idea.
      Tendency is to erase regex associate to token and this will be forced explicitly through `size_t`.
+
   - `size_t` vs. `enum` for token type.\
     Adding `enum` as custom token numbering will increase parameter list of `lex_lambda`.
     Number of temple parameter is too large in `lex_lambda`. If added to lex_basic this will have domino effect to `lex_lambda`.
@@ -382,6 +389,13 @@ Expect stream that contains lines of comma separated numbers.
 
       y1.accept( l2.token() ); //!< Error!!
     ```
+
+  - Where is implementation of this?\
+     It would be very helpful to have implementation of this proposal. To test and see behavior.\
+     Unfortunately any implementation that satisfies above conditions must relay of specific properties of each compiler vendor.\
+     Those specific properties can change from version to version and are very different from vendor to vendor.\
+     Any possible implementation by 3rd party will disobey complexity requirements.
+     In sub-folder is implementation that disobey complexity requirements.
 
 # V. Impact On the Standard
   * Core\
